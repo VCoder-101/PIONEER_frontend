@@ -1,8 +1,0 @@
-{
-  "/service-details/page": "app/service-details/page.js",
-  "/select-role/page": "app/select-role/page.js",
-  "/login/page": "app/login/page.js",
-  "/booking-time/page": "app/booking-time/page.js",
-  "/booking-confirm/page": "app/booking-confirm/page.js",
-  "/org/connect/page": "app/org/connect/page.js"
-}

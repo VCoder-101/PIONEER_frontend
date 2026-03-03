@@ -1,1 +1,21 @@
-/node_modules
+node_modules/
+
+# папки которые Next.js создаёт автоматически при запуске и сборке
+.next/
+out/
+
+# файлы с секретными настройками (адрес сервера, ключи)
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# файл ошибок npm, мусор
+npm-debug.log*
+
+# служебный файл macOS, мусор
+.DS_Store
+
+# файлы сертификатов безопасности, секретные
+*.pem
