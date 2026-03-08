@@ -7,7 +7,6 @@ const IconBack = () => (
     <path d="M19 12H5M12 5l-7 7 7 7"/>
   </svg>
 )
-
 const IconExit = () => (
   <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
     <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
@@ -18,45 +17,23 @@ const IconExit = () => (
 
 export default function TopBar({ backHref, title }) {
   const router = useRouter()
-
   return (
-    <div style={{
-      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-      padding: '14px 16px', borderBottom: '1px solid var(--border)',
-      background: '#fff', minHeight: '52px',
-    }}>
+    <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-white min-h-[52px]">
       {backHref ? (
-        <Link href={backHref} style={{
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          width: '36px', height: '36px', borderRadius: '8px',
-          color: 'var(--primary)', textDecoration: 'none',
-          background: 'var(--primary-light)',
-        }}>
+        <Link href={backHref} className="flex items-center justify-center w-9 h-9 rounded-lg text-primary bg-primary-l no-underline">
           <IconBack />
         </Link>
-      ) : <div style={{ width: '36px' }} />}
-
+      ) : <div className="w-9" />}
       {title && (
-        <span style={{
-          fontFamily: 'var(--font-brand)', fontSize: '16px',
-          fontWeight: 700, color: 'var(--text)', letterSpacing: '0.02em',
-        }}>
-          {title}
-        </span>
+        <span className="font-brand text-base font-bold text-txt tracking-wide">{title}</span>
       )}
-
-      {/* выход — сбрасываем сессию и на главную */}
       <button
         onClick={() => {
           localStorage.removeItem('pioneer_user')
+          localStorage.removeItem('pioneer_token')
           router.push('/select-role')
         }}
-        style={{
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          width: '36px', height: '36px', borderRadius: '8px',
-          color: 'var(--text-muted)', border: 'none', cursor: 'pointer',
-          background: '#f3f4f6',
-        }}
+        className="flex items-center justify-center w-9 h-9 rounded-lg text-muted bg-gray-100 border-none cursor-pointer"
         title="Выход"
       >
         <IconExit />

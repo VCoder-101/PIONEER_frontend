@@ -1,16 +1,17 @@
 'use client'
-
 import TopBar from '@/components/ui/TopBar'
+import Footer from '@/components/ui/Footer'
 
 export default function AdminRequestsPage() {
   return (
-    <div className="page-enter" style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', background: '#fff' }}>
+    <div className="page-enter flex flex-col min-h-screen bg-white">
       <TopBar backHref="/select-role" title="АДМИНИСТРАТОР" />
-      <div className="fade-in" style={{ padding: '40px 24px', textAlign: 'center', color: 'var(--text-muted)' }}>
-        <div style={{ fontSize: '56px', marginBottom: '16px' }}>🛡️</div>
-        <p style={{ fontSize: '16px', fontWeight: 600, color: 'var(--text)', marginBottom: '8px' }}>Раздел в разработке</p>
-        <p style={{ fontSize: '13px' }}>Панель администратора появится в ближайшее время</p>
+      <div className="fade-in px-6 py-10 text-center text-muted flex-1">
+        <div className="text-[56px] mb-4">🛡️</div>
+        <p className="text-[16px] font-semibold text-txt mb-2">Раздел в разработке</p>
+        <p className="text-[13px]">Панель администратора появится в ближайшее время</p>
       </div>
+      <Footer />
     </div>
   )
 }

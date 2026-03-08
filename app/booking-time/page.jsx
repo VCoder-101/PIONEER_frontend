@@ -1,164 +1,92 @@
 'use client'
-
-import { useState } from 'react'
+import { Suspense, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import TopBar from '@/components/ui/TopBar'
-
+import Footer from '@/components/ui/Footer'
 
 const MOCK_SLOTS = {
   today:    ['11:20', '13:40', '15:20', '16:20', '17:30', '18:40', '19:10', '20:30'],
   tomorrow: ['10:00', '11:30', '12:50', '14:10', '15:40', '17:00', '18:20', '19:50'],
 }
 
-export default function BookingTimePage() {
+function BookingTimeContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
-
   const serviceId     = searchParams.get('service')       || 'wash'
   const orgId         = searchParams.get('orgId')         || '1'
   const orgName       = searchParams.get('orgName')       || 'Авангард'
   const orgAddress    = searchParams.get('orgAddress')    || 'Походный проезд, д. 10'
   const totalPrice    = searchParams.get('totalPrice')    || '0'
   const totalDuration = searchParams.get('totalDuration') || '0'
+  let works = []; try { works = JSON.parse(searchParams.get('works') || '[]') } catch {}
 
-  let works = []
-  try { works = JSON.parse(searchParams.get('works') || '[]') } catch {}
-
-  const [day, setDay]       = useState('today')
+  const [day, setDay]           = useState('today')
   const [timeSlot, setTimeSlot] = useState(null)
 
-  const slots = MOCK_SLOTS[day]
-
   const handleSelect = () => {
-    const params = new URLSearchParams({
-      service:    serviceId,
-      orgName,
-      orgAddress,
-      day,
-      time:       timeSlot,
-      totalPrice,
-      totalDuration,
-      works:      JSON.stringify(works),
-    })
+    const params = new URLSearchParams({ service: serviceId, orgName, orgAddress, day, time: timeSlot, totalPrice, totalDuration, works: JSON.stringify(works) })
     router.push(`/booking-confirm?${params.toString()}`)
   }
 
   return (
-    <div className="page-enter" style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', background: '#fff' }}>
-      <TopBar backHref={`/service-details?service=${serviceId}&orgId=${orgId}&orgName=${encodeURIComponent(orgName)}&orgAddress=${encodeURIComponent(orgAddress)}`} title="ВРЕМЯ ЗАПИСИ" />
-
-      <div style={{ padding: '16px 20px', flex: 1, display: 'flex', flexDirection: 'column' }}>
-        <div style={{ marginBottom: '12px' }}>
-          <div style={{ fontFamily: 'var(--font-brand)', fontSize: '17px', fontWeight: 700, color: 'var(--text)' }}>
-            {orgName}
-          </div>
-          <div style={{ fontSize: '13px', color: 'var(--text-muted)', marginTop: '2px' }}>
-            {orgAddress}
-          </div>
-        </div>
-        <div style={{
-          padding: '12px 14px', marginBottom: '16px',
-          background: '#f9fafb', borderRadius: '10px',
-          border: '1px solid var(--border)',
-        }}>
-          <div style={{ fontSize: '12px', color: 'var(--text-muted)', fontWeight: 600,
-            textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '8px' }}>
-            Услуги:
-          </div>
-          {works.map((w, i) => (
-            <div key={i} style={{
-              display: 'flex', justifyContent: 'space-between',
-              fontSize: '13px', color: 'var(--text)', marginBottom: '4px',
-            }}>
-              <span>{w.code}. {w.name}</span>
-              <span style={{ color: 'var(--text-muted)', flexShrink: 0, marginLeft: '8px' }}>
-                {w.price} RUB {w.duration} мин
-              </span>
-            </div>
-          ))}
-          <div style={{ borderTop: '1px solid var(--border)', marginTop: '8px', paddingTop: '8px',
-            display: 'flex', justifyContent: 'space-between' }}>
-            <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text)' }}>Итого:</span>
-            <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--primary)' }}>
-              {totalPrice} RUB {totalDuration} мин
-            </span>
-          </div>
-        </div>
-        <div style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
-          {[{ id: 'today', label: 'Сегодня' }, { id: 'tomorrow', label: 'Завтра' }].map(d => (
-            <button
-              key={d.id}
-              onClick={() => { setDay(d.id); setTimeSlot(null) }}
-              style={{
-                flex: 1, padding: '10px',
-                borderRadius: '10px', border: 'none', cursor: 'pointer',
-                fontFamily: 'var(--font-brand)', fontSize: '15px', fontWeight: 700,
-                letterSpacing: '0.03em',
-                background: day === d.id ? 'var(--primary)' : '#f3f4f6',
-                color: day === d.id ? '#fff' : 'var(--text-muted)',
-                transition: 'all 0.18s',
-              }}
-            >
-              {d.label}
-            </button>
-          ))}
-        </div>
-        <div style={{ fontSize: '12px', color: 'var(--text-muted)', fontWeight: 600,
-          textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '10px' }}>
-          Время записи
-        </div>
-
-        <div style={{
-          flex: 1, overflowY: 'auto',
-          border: '1px solid var(--border)', borderRadius: '12px',
-          marginBottom: '16px',
-        }}>
-          {slots.map((slot, idx) => (
-            <label
-              key={slot}
-              style={{
-                display: 'flex', alignItems: 'center', gap: '12px',
-                padding: '14px 16px',
-                borderBottom: idx < slots.length - 1 ? '1px solid var(--border)' : 'none',
-                background: timeSlot === slot ? 'var(--primary-light)' : '#fff',
-                cursor: 'pointer', transition: 'background 0.15s',
-              }}
-            >
-              <input
-                type="radio"
-                name="timeslot"
-                value={slot}
-                checked={timeSlot === slot}
-                onChange={() => setTimeSlot(slot)}
-                style={{ accentColor: 'var(--primary)', width: '18px', height: '18px', flexShrink: 0 }}
-              />
-              <span style={{
-                fontSize: '16px', fontWeight: timeSlot === slot ? 700 : 400,
-                color: timeSlot === slot ? 'var(--primary)' : 'var(--text)',
-                fontFamily: 'var(--font-brand)', letterSpacing: '0.04em',
-              }}>
-                {slot}
-              </span>
-            </label>
-          ))}
-        </div>
-        <button
-          onClick={handleSelect}
-          disabled={!timeSlot}
-          style={{
-            width: '100%', padding: '16px',
-            background: timeSlot ? 'var(--primary)' : '#e5e7eb',
-            color: timeSlot ? '#fff' : '#9ca3af',
-            border: 'none', borderRadius: '12px',
-            fontFamily: 'var(--font-brand)', fontSize: '17px',
-            fontWeight: 700, letterSpacing: '0.04em',
-            cursor: timeSlot ? 'pointer' : 'not-allowed',
-            transition: 'all 0.2s',
-          }}
-        >
-          ВЫБРАТЬ
-        </button>
+    <div className="px-5 py-4 flex-1 flex flex-col">
+      <div className="mb-3">
+        <div className="font-brand text-[17px] font-bold text-txt">{orgName}</div>
+        <div className="text-[13px] text-muted mt-0.5">{orgAddress}</div>
       </div>
+      <div className="px-[14px] py-3 mb-4 bg-gray-50 rounded-[10px] border border-border">
+        <div className="text-[12px] text-muted font-semibold uppercase tracking-widest mb-2">Услуги:</div>
+        {works.map((w, i) => (
+          <div key={i} className="flex justify-between text-[13px] text-txt mb-1">
+            <span>{w.code}. {w.name}</span>
+            <span className="text-muted shrink-0 ml-2">{w.price} RUB {w.duration} мин</span>
+          </div>
+        ))}
+        <div className="border-t border-border mt-2 pt-2 flex justify-between">
+          <span className="text-[13px] font-semibold text-txt">Итого:</span>
+          <span className="text-[13px] font-bold text-primary">{totalPrice} RUB {totalDuration} мин</span>
+        </div>
+      </div>
+      <div className="flex gap-2 mb-4">
+        {[{ id: 'today', label: 'Сегодня' }, { id: 'tomorrow', label: 'Завтра' }].map(d => (
+          <button key={d.id} onClick={() => { setDay(d.id); setTimeSlot(null) }}
+            className={`flex-1 py-2.5 rounded-[10px] border-none cursor-pointer font-brand text-[15px] font-bold tracking-wide transition-all ${day === d.id ? 'bg-primary text-white' : 'bg-gray-100 text-muted'}`}>
+            {d.label}
+          </button>
+        ))}
+      </div>
+      <div className="text-[12px] text-muted font-semibold uppercase tracking-widest mb-2.5">Время записи</div>
+      <div className="flex-1 overflow-y-auto border border-border rounded-xl mb-4">
+        {MOCK_SLOTS[day].map((slot, idx) => (
+          <label key={slot}
+            className={`flex items-center gap-3 px-4 py-[14px] cursor-pointer transition-colors ${idx < MOCK_SLOTS[day].length - 1 ? 'border-b border-border' : ''} ${timeSlot === slot ? 'bg-primary-l' : 'bg-white'}`}>
+            <input type="radio" name="timeslot" value={slot} checked={timeSlot === slot}
+              onChange={() => setTimeSlot(slot)} className="w-[18px] h-[18px] shrink-0" style={{ accentColor: '#1a56db' }} />
+            <span className={`font-brand text-[16px] tracking-widest ${timeSlot === slot ? 'text-primary font-bold' : 'text-txt font-normal'}`}>{slot}</span>
+          </label>
+        ))}
+      </div>
+      <button onClick={handleSelect} disabled={!timeSlot}
+        className={`w-full py-4 rounded-xl font-brand text-[17px] font-bold tracking-widest border-none transition-all ${timeSlot ? 'bg-primary text-white cursor-pointer' : 'bg-border text-muted cursor-not-allowed'}`}>
+        ВЫБРАТЬ
+      </button>
     </div>
+  )
+}
+
+export default function BookingTimePage() {
+  const searchParams = useSearchParams()
+  const serviceId = searchParams.get('service') || 'wash'
+  const orgId     = searchParams.get('orgId')   || '1'
+  const orgName   = searchParams.get('orgName') || 'Авангард'
+  const orgAddress = searchParams.get('orgAddress') || ''
+  return (
+    <Suspense fallback={<div className="flex-1 flex items-center justify-center text-muted text-[14px]">Загрузка...</div>}>
+      <div className="page-enter flex flex-col min-h-screen bg-white">
+        <TopBar backHref={`/service-details?service=${serviceId}&orgId=${orgId}&orgName=${encodeURIComponent(orgName)}&orgAddress=${encodeURIComponent(orgAddress)}`} title="ВРЕМЯ ЗАПИСИ" />
+        <BookingTimeContent />
+        <Footer />
+      </div>
+    </Suspense>
   )
 }

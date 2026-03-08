@@ -5,7 +5,7 @@ PIONEER — Агрегатор услуг для транспортных сре
 Next.js 14 (App Router)
 React 18
 JavaScript (JSX)
-CSS переменные + Inline стили
+CSS Tailwind
 
 Запуск проекта :
 

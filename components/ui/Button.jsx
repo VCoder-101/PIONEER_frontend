@@ -1,40 +1,12 @@
-export default function Button({ children, onClick, variant = 'primary', fullWidth, disabled, style }) {
-  const base = {
-    width: fullWidth ? '100%' : 'auto',
-    padding: '14px 20px',
-    borderRadius: '10px',
-    fontFamily: 'var(--font-body)',
-    fontSize: '15px',
-    fontWeight: 600,
-    cursor: disabled ? 'not-allowed' : 'pointer',
-    border: 'none',
-    transition: 'all 0.18s',
-    opacity: disabled ? 0.5 : 1,
-    letterSpacing: '0.01em',
-  }
-
+export default function Button({ children, onClick, variant = 'primary', fullWidth, disabled, className = '' }) {
+  const base = `inline-flex items-center justify-center rounded-[10px] font-body text-[15px] font-semibold tracking-wide transition-all duration-150 px-5 py-[14px] border-none cursor-pointer ${fullWidth ? 'w-full' : ''} ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`
   const variants = {
-    primary: {
-      background: 'var(--primary)',
-      color: '#fff',
-      boxShadow: '0 2px 8px rgba(26,86,219,0.25)',
-    },
-    outline: {
-      background: 'transparent',
-      color: 'var(--primary)',
-      border: '1.5px solid var(--primary)',
-    },
-    ghost: {
-      background: 'var(--primary-light)',
-      color: 'var(--primary)',
-    },
+    primary: 'bg-primary text-white shadow-[0_2px_8px_rgba(26,86,219,0.25)]',
+    outline: 'bg-transparent text-primary border border-primary',
+    ghost:   'bg-primary-l text-primary',
   }
-
   return (
-    <button
-      onClick={disabled ? undefined : onClick}
-      style={{ ...base, ...variants[variant], ...style }}
-    >
+    <button onClick={disabled ? undefined : onClick} disabled={disabled} className={`${base} ${variants[variant]} ${className}`}>
       {children}
     </button>
   )

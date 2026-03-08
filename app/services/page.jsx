@@ -1,72 +1,45 @@
 'use client'
-
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import TopBar from '@/components/ui/TopBar'
+import Footer from '@/components/ui/Footer'
 
 const services = [
-  { id: 'wash', title: 'МОЙКА', description: 'Выбор условий мойки', icon: '🚿', color: '#1a56db', bg: '#e8effc', border: '#c3d4f7' },
-  { id: 'tire', title: 'ШИНОМОНТАЖ', description: 'Выбор радиуса колеса', icon: '🔧', color: '#059669', bg: '#ecfdf5', border: '#a7f3d0' },
+  { id: 'wash', title: 'МОЙКА', description: 'Выбор условий мойки', icon: '🚿',
+    active: 'bg-primary-l border-primary-b', titleColor: 'text-primary', radio: '#1a56db' },
+  { id: 'tire', title: 'ШИНОМОНТАЖ', description: 'Выбор радиуса колеса', icon: '🔧',
+    active: 'bg-emerald-50 border-emerald-200', titleColor: 'text-emerald-600', radio: '#059669' },
 ]
 
 export default function ServicesPage() {
   const router = useRouter()
   const [selected, setSelected] = useState('wash')
-
   return (
-    <div className="page-enter" style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', background: '#fff' }}>
+    <div className="page-enter flex flex-col min-h-screen bg-white">
       <TopBar title="УСЛУГИ" />
-
-      <div style={{ padding: '24px 20px', flex: 1 }}>
-        <p className="fade-in" style={{
-          fontSize: '13px', color: 'var(--text-muted)', marginBottom: '16px',
-          textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 500,
-        }}>
-          Выберите услугу
-        </p>
-
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '40px' }}>
+      <div className="px-5 py-6 flex-1 flex flex-col">
+        <p className="fade-in text-[13px] text-muted mb-4 uppercase tracking-widest font-medium">Выберите услугу</p>
+        <div className="flex flex-col gap-3 mb-10">
           {services.map((s, idx) => (
-            <label key={s.id} className={`fade-in delay-${idx + 1}`} style={{
-              display: 'flex', alignItems: 'center', gap: '16px',
-              padding: '18px 16px', borderRadius: '14px',
-              border: `1.5px solid ${selected === s.id ? s.border : 'var(--border)'}`,
-              background: selected === s.id ? s.bg : '#fff',
-              cursor: 'pointer', transition: 'all 0.2s',
-            }}>
+            <label key={s.id} className={`fade-in delay-${idx + 1} flex items-center gap-4 px-4 py-[18px] rounded-2xl border-[1.5px] cursor-pointer transition-all ${selected === s.id ? s.active : 'bg-white border-border'}`}>
               <input type="radio" name="service" value={s.id} checked={selected === s.id}
-                onChange={() => setSelected(s.id)}
-                style={{ accentColor: s.color, width: '18px', height: '18px', flexShrink: 0 }} />
-              <div style={{
-                width: '48px', height: '48px', borderRadius: '12px',
-                background: s.bg, display: 'flex', alignItems: 'center',
-                justifyContent: 'center', fontSize: '22px', flexShrink: 0,
-                border: `1px solid ${s.border}`,
-              }}>
+                onChange={() => setSelected(s.id)} className="w-[18px] h-[18px] shrink-0" style={{ accentColor: s.radio }} />
+              <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-[22px] shrink-0 border ${selected === s.id ? s.active : 'bg-gray-50 border-border'}`}>
                 {s.icon}
               </div>
               <div>
-                <div style={{ fontFamily: 'var(--font-brand)', fontSize: '18px', fontWeight: 700, letterSpacing: '0.04em', color: s.color }}>
-                  {s.title}
-                </div>
-                <div style={{ fontSize: '13px', color: 'var(--text-muted)', marginTop: '2px' }}>{s.description}</div>
+                <div className={`font-brand text-[18px] font-bold tracking-widest ${selected === s.id ? s.titleColor : 'text-txt'}`}>{s.title}</div>
+                <div className="text-[13px] text-muted mt-0.5">{s.description}</div>
               </div>
             </label>
           ))}
         </div>
-
-        <button className="delay-3 fade-in"
-          onClick={() => router.push(`/organizations?service=${selected}`)}
-          style={{
-            width: '100%', padding: '16px',
-            background: 'var(--primary)', color: '#fff',
-            border: 'none', borderRadius: '12px',
-            fontFamily: 'var(--font-brand)', fontSize: '17px',
-            fontWeight: 700, letterSpacing: '0.04em', cursor: 'pointer',
-          }}>
+        <button onClick={() => router.push(`/organizations?service=${selected}`)}
+          className="delay-3 fade-in w-full py-4 bg-primary text-white rounded-xl font-brand text-[17px] font-bold tracking-widest border-none cursor-pointer">
           ВЫБРАТЬ УСЛУГУ
         </button>
       </div>
+      <Footer />
     </div>
   )
 }
