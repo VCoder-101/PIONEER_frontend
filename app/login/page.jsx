@@ -18,10 +18,12 @@ export default function LoginPage() {
   const [errors, setErrors]         = useState({})
   const [submitting, setSubmitting] = useState(false)
   const [shake, setShake]           = useState(false)
+  const [authType, setAuthType] = useState('login')
+  const [userName, setUserName] = useState('')
 
-  useEffect(() => {
+  /* useEffect(() => {
     if (!loading && user) router.replace('/services')
-  }, [user, loading])
+  }, [user, loading]) */
 
   const validateEmail = () => {
     if (!email.trim()) return 'Введите email'
@@ -39,7 +41,42 @@ export default function LoginPage() {
     }
 
     setSubmitting(true)
-    setErrors({})
+    /* await fetch('http://localhost:8000/api/users/auth/email/register/send-code/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ 
+        "email": email,
+        "privacy_policy_accepted": true
+      }),
+    })
+    .then((code) =>{
+        console.log("code sent", code)
+    }).catch(error=>{
+        console.log("Error", error)
+        alert("Произошла ошибка регистрации, повторите снова")
+    }) */
+    const response = await fetch('http://127.0.0.1:8000/api/users/auth/send-code/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ 
+          "email": email,
+          "privacy_policy_accepted": true
+        }),
+    })
+    if(response.status == 400){
+        console.log('400', response)
+    }else if(response.ok){
+        const data = await response.json()
+        console.log("OK",data)
+        setAuthType(data.auth_type)
+        setSubmitting(false)
+        setCodeSent(true)
+    }else if(!response.ok){
+      console.log("NOT OK",response)
+    }
+    /* setErrors({})
 
     try {
       await authService.sendEmailCode(email)
@@ -48,7 +85,7 @@ export default function LoginPage() {
       setErrors({ server: err.message || 'Ошибка отправки кода' })
     } finally {
       setSubmitting(false)
-    }
+    } */
   }
 
   const handleVerify = async () => {
@@ -56,11 +93,42 @@ export default function LoginPage() {
       setErrors({ code: 'Введите код из письма' })
       return
     }
+    if (authType == 'registration' && userName == ''){
+      setErrors({ userName: 'Введите имя' })
+      return
+    }
 
     setSubmitting(true)
     setErrors({})
 
-    try {
+    const response = await fetch('http://localhost:8000/api/users/auth/verify-code/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ 
+          "name": "Michael",
+          "email": email,
+          "code": code,
+          "privacy_policy_accepted": true,
+          "device_id": "my-device-123"
+        }),
+    })
+    if(response.ok){
+      console.log("OK",response)
+      const data = await response.json()
+      localStorage.setItem("pioneer_token", data.jwt.access)
+      localStorage.setItem("pioneer_refresh_token", data.jwt.refresh)
+      //router.push('/services')
+    }else if(!response.ok){
+      console.log("NOT OK",response)
+      setErrors({ code: 'Неверный код. Попробуйте ещё раз.' })
+      setShake(true)
+      setTimeout(() => setShake(false), 500)
+      setSubmitting(false)
+    }
+
+    /* try {
       const data = await authService.verifyEmailCode(email, code)
       login(email, data.token)
       router.push('/services')
@@ -70,10 +138,10 @@ export default function LoginPage() {
       setTimeout(() => setShake(false), 500)
     } finally {
       setSubmitting(false)
-    }
+    } */
   }
 
-  if (loading) return null
+  //if (loading) return null
 
   return (
     <div className="page-enter" style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', background: '#fff' }}>
@@ -85,14 +153,8 @@ export default function LoginPage() {
           color: 'var(--text)', letterSpacing: '0.04em',
           marginBottom: '8px', textAlign: 'center',
         }}>
-          ВХОД
+          {authType == 'registration' ? "РЕГИСТРАЦИЯ" : "ВХОД"}
         </h1>
-        <p className="fade-in" style={{ textAlign: 'center', fontSize: '13px', color: 'var(--text-muted)', marginBottom: '32px' }}>
-          Нет аккаунта?{' '}
-          <Link href="/register" style={{ color: 'var(--primary)', fontWeight: 600, textDecoration: 'none' }}>
-            Зарегистрироваться
-          </Link>
-        </p>
 
         <div className={shake ? 'shake' : ''} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
 
@@ -124,6 +186,34 @@ export default function LoginPage() {
             )}
           </div>
 
+          {authType == 'registration' ? 
+            <div className="fade-in">
+              <label style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text)', display: 'block', marginBottom: '6px' }}>
+                Ваше Имя
+              </label>
+              <input
+                type="text"
+                value={userName}
+                onChange={e => {setUserName(e.target.value)}}
+                placeholder="Ваше имя"
+                style={{
+                  width: '100%', padding: '12px 14px',
+                  border: `1.5px solid ${errors.userName ? 'var(--danger)' : 'var(--border)'}`,
+                  borderRadius: '10px', fontSize: '22px',
+                  outline: 'none', color: 'var(--text)',
+                  letterSpacing: '0.3em', textAlign: 'center',
+                  fontFamily: 'var(--font-brand)',
+                  transition: 'border-color 0.2s',
+                }}
+              />
+              {errors.userName && (
+                <div className="fade-in" style={{ marginTop: '5px', fontSize: '12px', color: 'var(--danger)' }}>
+                  ⚠ {errors.userName}
+                </div>
+              )}
+            </div> : null
+          }
+
           {/* Код из письма */}
           {codeSent && (
             <div className="fade-in">
@@ -138,7 +228,7 @@ export default function LoginPage() {
                 value={code}
                 onChange={e => { setCode(e.target.value.replace(/\D/g, '').slice(0, 6)); setErrors({}) }}
                 placeholder="Введите код"
-                maxLength={6}
+                maxLength={4}
                 style={{
                   width: '100%', padding: '12px 14px',
                   border: `1.5px solid ${errors.code ? 'var(--danger)' : 'var(--border)'}`,

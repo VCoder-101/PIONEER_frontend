@@ -1,35 +1,66 @@
 'use client'
 
+import { useRouter } from 'next/navigation'
 import { useState, useEffect } from 'react'
 
 const AUTH_KEY = 'pioneer_user'
 const TOKEN_KEY = 'pioneer_token'
 
 export function useAuth() {
-  const [user, setUser] = useState(null)
-  const [loading, setLoading] = useState(true)
+  const router = useRouter()
+  const [userData, setUserData] = useState([])
 
-  // читаем сессию из localStorage при загрузке
-  useEffect(() => {
-    const saved = localStorage.getItem(AUTH_KEY)
-    if (saved) {
-      setUser(JSON.parse(saved))
+  const [accesToken, setAccessToken] = useState('')
+  const [refreshToken, setRefreshToken] = useState('')
+
+  const getUserData = async () => {
+    //setAccessToken(localStorage.getItem("pioneer_token"))
+    let access_token
+    access_token = localStorage.getItem("pioneer_token")
+    //setLoadingStatus(false)
+    const response = await fetch('http://localhost:8000/api/users/me/', {
+        method: 'GET',
+        headers: {
+          "Authorization": `Bearer ${access_token}`,
+        }
+    })
+    if(response.ok){
+      const data = await response.json()
+      console.log(data)
+      setUserData(data)
+      //setStatusAuth(true)
+      //setLoadingStatus(false)
+    }else if(response.status == 401){
+      refreshAccessToken()
     }
-    setLoading(false)
+  }
+
+  const refreshAccessToken = async () => {
+    //setRefreshToken(localStorage.getItem("pioneer_refresh_token"))
+    let refresh_token
+    refresh_token = localStorage.getItem("pioneer_refresh_token")
+    console.log("REFR", refresh_token)
+    //setLoadingStatus(false)
+    const response = await fetch('http://localhost:8000/api/token/refresh/', {
+        method: 'POST',
+        body:JSON.stringify({
+          "refresh": refresh_token
+        })
+    })
+    if(response.ok){
+      const token = await response.json()
+      console.log("NEW",token)
+      localStorage.setItem("pioneer_token", token)
+    }else if(!response.ok){
+      //localStorage.removeItem("pioneer_token")
+      //localStorage.removeItem("pioneer_refresh_token")
+      //router.push('/')
+    }
+  }
+
+  useEffect(() => {
+    getUserData()
   }, [])
 
-  const login = (email, token) => {
-    const userData = { email, loggedAt: Date.now() }
-    localStorage.setItem(AUTH_KEY, JSON.stringify(userData))
-    if (token) localStorage.setItem(TOKEN_KEY, token)
-    setUser(userData)
-  }
-
-  const logout = () => {
-    localStorage.removeItem(AUTH_KEY)
-    localStorage.removeItem(TOKEN_KEY)
-    setUser(null)
-  }
-
-  return { user, loading, login, logout }
+  return { userData }
 }

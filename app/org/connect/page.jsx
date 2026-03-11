@@ -8,24 +8,43 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Input } from '@/componentsShadCN/ui/input'
 import { Label } from '@/componentsShadCN/ui/label'
 import { Textarea } from '@/componentsShadCN/ui/textarea'
+import { useAuth } from '@/hooks/useAuth'
 import { organizationService } from '@/services/organizationService'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 
 export default function OrgConnectPage() {
+  const { userData } = useAuth()
   const router = useRouter()
   const [loadingStatus, setLoadingStatus] = useState(true)
   const [statusAuth, setStatusAuth] = useState(false)
+  const [organizationData, setOrganizationData] = useState([])
+
 
   useEffect(() => {
-    let value
-    value = localStorage.getItem("pioneer_token")
-    setLoadingStatus(false)
-    if(value !== null){
-      setStatusAuth(true)
+    const verifyCode = async () => {
+      let access_token
+      access_token = localStorage.getItem("pioneer_token")
+      //setLoadingStatus(false)
+      console.log(access_token)
+      const response = await fetch('http://localhost:8000/api/organizations/', {
+          method: 'GET',
+          headers: {
+            "Authorization": `Bearer ${access_token}`,
+          }
+      })
+      if(response.ok){
+        console.log("OK",response)
+        const data = await response.json()
+        setOrganizationData(data.results)
+        console.log(data)
+      }else if(!response.ok){
+        console.log("NOT OK",response)
+      }
     }
-  }, [])
+    verifyCode()
+  }, [userData])
 
   const [formData, setFormData] = useState({})
 
@@ -42,7 +61,7 @@ export default function OrgConnectPage() {
     console.log(formData)
   }
 
-  const userData = {
+  /* const userData = {
     organizationId: 1337,
     userOrganization: true,
     userOrganizationStatus: 'approved',
@@ -53,7 +72,26 @@ export default function OrgConnectPage() {
     orgOgrn: 12345435212,
     orgInn: 12312312353466765,
     orgKpp: 7777436213476127,
-  }
+  } */
+
+  /* function getUserData(){
+    const response = await fetch('http://localhost:8000/api/users/auth/verify-code/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          "Authorization": `Bearer ${access_token}`
+        },
+        body: JSON.stringify({ 
+          "name": "Michael",
+        }),
+    })
+    if(response.ok){
+      console.log("OK",response)
+      const data = await response.json()
+    }else if(!response.ok){
+      console.log("NOT OK",response)
+    }
+  } */
 
   const [open, setOpen] = useState(false)
 
@@ -114,20 +152,20 @@ export default function OrgConnectPage() {
         </AlertDialog>
       </div>
     )
-  }if(userData.userOrganization && userData.userOrganizationStatus == 'approved'){
+  }if(organizationData /* && userData.userOrganizationStatus == 'approved' */){
     return(
       <div className="page-enter" style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', background: '#fff' }}>
         <TopBar backHref="/select-role" title="ОРГАНИЗАЦИЯМ-ПАРТНЁРАМ" />
         <Card size="sm" className="mx-auto mt-6 w-[90%] max-w-sm relative">
           <CardHeader className={'w-[255px]'}>
-            <CardTitle>Заявка номер: {userData.organizationId}</CardTitle>
+            <CardTitle>Заявка номер: {organizationData.id}</CardTitle>
             <CardDescription>
-              {userData.organizationFullName}
+              {organizationData.name}
             </CardDescription>
           </CardHeader>
           <CardContent>
             <p>
-              Дата создания: {userData.organizationDateRegistration}
+              Дата создания: {organizationData.created_at}
             </p>
             <p>
               Дата Подтверждения: {userData.organizationDateRegistration}
