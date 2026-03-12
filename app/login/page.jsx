@@ -10,7 +10,13 @@ import Button from '@/components/ui/Button'
 
 export default function LoginPage() {
   const router = useRouter()
-  const { user, loading, login } = useAuth()
+  const { userData } = useAuth()
+
+  useEffect(()=>{
+    if(userData.length !== 0){
+      router.push('/services')
+    }
+  }, [userData])
 
   const [email, setEmail]           = useState('')
   const [code, setCode]             = useState('')

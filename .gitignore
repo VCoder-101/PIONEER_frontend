@@ -5,7 +5,7 @@ node_modules/
 out/
 
 # файлы с секретными настройками (адрес сервера, ключи)
-.env
+#.env
 .env.local
 .env.development.local
 .env.test.local

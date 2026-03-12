@@ -10,9 +10,6 @@ export function useAuth() {
   const router = useRouter()
   const [userData, setUserData] = useState([])
 
-  const [accesToken, setAccessToken] = useState('')
-  const [refreshToken, setRefreshToken] = useState('')
-
   const getUserData = async () => {
     //setAccessToken(localStorage.getItem("pioneer_token"))
     let access_token
@@ -40,21 +37,27 @@ export function useAuth() {
     let refresh_token
     refresh_token = localStorage.getItem("pioneer_refresh_token")
     console.log("REFR", refresh_token)
+    console.log("REFR2", {
+          "refresh": refresh_token
+        })
     //setLoadingStatus(false)
     const response = await fetch('http://localhost:8000/api/token/refresh/', {
         method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
         body:JSON.stringify({
           "refresh": refresh_token
         })
     })
     if(response.ok){
       const token = await response.json()
-      console.log("NEW",token)
-      localStorage.setItem("pioneer_token", token)
+      console.log("NEW",token.access)
+      localStorage.setItem("pioneer_token", token.access)
     }else if(!response.ok){
-      //localStorage.removeItem("pioneer_token")
-      //localStorage.removeItem("pioneer_refresh_token")
-      //router.push('/')
+      router.push('/login')
+      localStorage.removeItem("pioneer_token")
+      localStorage.removeItem("pioneer_refresh_token")
     }
   }
 
