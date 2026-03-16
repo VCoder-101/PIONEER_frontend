@@ -53,7 +53,9 @@ function OrganizationsContent() {
         <div className="border border-border rounded-xl overflow-hidden">
           {results.map((org, idx) => (
             <button key={org.id} onClick={() => handleSelectOrg(org)}
-              className={`fade-in delay-${Math.min(idx + 1, 5)} w-full text-left px-4 py-[14px] border-none cursor-pointer ${idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'} ${idx < results.length - 1 ? 'border-b border-border' : ''}`}>
+              className={`fade-in delay-${Math.min(idx + 1, 5)} w-full text-left px-4 py-[14px] border-none cursor-pointer
+                ${idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}
+                ${idx < results.length - 1 ? 'border-b border-border' : ''}`}>
               <div className="text-[15px] text-primary font-medium">{org.name}</div>
               <div className="text-[13px] text-muted mt-0.5">{org.address}</div>
             </button>

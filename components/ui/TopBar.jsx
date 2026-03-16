@@ -14,8 +14,14 @@ const IconExit = () => (
     <line x1="21" y1="12" x2="9" y2="12"/>
   </svg>
 )
+const IconUser = () => (
+  <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+    <circle cx="12" cy="8" r="4"/>
+    <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
+  </svg>
+)
 
-export default function TopBar({ backHref, title }) {
+export default function TopBar({ backHref, title, hideProfile = false }) {
   const router = useRouter()
   return (
     <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-white min-h-[52px]">
@@ -24,20 +30,33 @@ export default function TopBar({ backHref, title }) {
           <IconBack />
         </Link>
       ) : <div className="w-9" />}
+
       {title && (
         <span className="font-brand text-base font-bold text-txt tracking-wide">{title}</span>
       )}
-      <button
-        onClick={() => {
-          localStorage.removeItem('pioneer_user')
-          localStorage.removeItem('pioneer_token')
-          router.push('/select-role')
-        }}
-        className="flex items-center justify-center w-9 h-9 rounded-lg text-muted bg-gray-100 border-none cursor-pointer"
-        title="Выход"
-      >
-        <IconExit />
-      </button>
+
+      <div className="flex items-center gap-2">
+        {!hideProfile && (
+          <button
+            onClick={() => router.push('/profile')}
+            className="flex items-center justify-center w-9 h-9 rounded-lg text-primary bg-primary-l border-none cursor-pointer"
+            title="Профиль"
+          >
+            <IconUser />
+          </button>
+        )}
+        <button
+          onClick={() => {
+            localStorage.removeItem('pioneer_user')
+            localStorage.removeItem('pioneer_token')
+            router.push('/select-role')
+          }}
+          className="flex items-center justify-center w-9 h-9 rounded-lg text-muted bg-gray-100 border-none cursor-pointer"
+          title="Выход"
+        >
+          <IconExit />
+        </button>
+      </div>
     </div>
   )
 }

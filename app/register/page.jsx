@@ -49,7 +49,7 @@ export default function RegisterPage() {
 
   return (
     <div className="page-enter flex flex-col min-h-screen bg-white">
-      <TopBar backHref="/select-role" />
+      <TopBar backHref="/select-role" hideProfile />
       <div className="px-6 pt-8 pb-6 flex-1 flex flex-col">
         <h1 className="fade-in font-brand text-[26px] font-bold text-txt tracking-widest text-center mb-2">РЕГИСТРАЦИЯ</h1>
         <p className="fade-in text-center text-[13px] text-muted mb-8">
