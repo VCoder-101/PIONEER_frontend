@@ -3,6 +3,8 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import TopBar from '@/components/ui/TopBar'
 import Footer from '@/components/ui/Footer'
+import { apiClient } from '@/api/client'
+import { useAuth } from '@/hooks/useAuth'
 
 const CAR_BRANDS = [
   'Lada', 'Toyota', 'Kia', 'Hyundai', 'Volkswagen',
@@ -10,63 +12,79 @@ const CAR_BRANDS = [
   'Renault', 'Skoda', 'Ford', 'Mitsubishi', 'Honda',
 ]
 
-const TIRE_SIZES = ['R13', 'R14', 'R15', 'R16', 'R17', 'R18', 'R19', 'R20']
-
-const MOCK_BOOKINGS = [
-  { id: 1, org: 'АвтоСПА',   service: 'Мойка',      date: '15 марта', time: '14:30', status: 'done',     price: 600 },
-  { id: 2, org: 'Авангард',  service: 'Шиномонтаж', date: '22 марта', time: '11:00', status: 'upcoming', price: 480 },
-  { id: 3, org: 'Автопилот', service: 'Мойка',       date: '28 марта', time: '16:20', status: 'upcoming', price: 350 },
-]
-
-const statusLabel = { done: 'Завершена', upcoming: 'Предстоит' }
+const statusLabel = { NEW: 'Новая', CONFIRMED: 'Подтверждена', DONE: 'Завершена', CANCELLED: 'Отменена' }
 const statusStyle = {
-  done:     'bg-gray-100 text-muted',
-  upcoming: 'bg-primary-l text-primary',
+  NEW:       'bg-primary-l text-primary',
+  CONFIRMED: 'bg-emerald-50 text-emerald-600',
+  DONE:      'bg-gray-100 text-muted',
+  CANCELLED: 'bg-red-50 text-red-500',
 }
 
 export default function ProfilePage() {
   const router = useRouter()
+  const { user, logout } = useAuth()
 
   const [email, setEmail]     = useState('')
-  const [brand, setBrand]     = useState('')
-  const [plate, setPlate]     = useState('')
-  const [tire, setTire]       = useState('')
-  const [saved, setSaved]     = useState(false)
+  const [cars, setCars]       = useState([])
+  const [bookings, setBookings] = useState([])
+  const [loadingCars, setLoadingCars]       = useState(true)
+  const [loadingBookings, setLoadingBookings] = useState(true)
   const [editing, setEditing] = useState(false)
-  const [loading, setLoading] = useState(true)
+  const [saved, setSaved]     = useState(false)
+  const [carForm, setCarForm] = useState({ brand: '', plate: '', wheel_diameter: 16 })
+  const [addingCar, setAddingCar] = useState(false)
+  const [carError, setCarError]   = useState(null)
 
   useEffect(() => {
     const token = localStorage.getItem('pioneer_token')
-    const user  = localStorage.getItem('pioneer_user')
+    if (!token) { router.replace('/login'); return }
 
-    if (!token || !user) {
-      router.replace('/login')
-      return
+    const userRaw = localStorage.getItem('pioneer_user')
+    if (userRaw) {
+      try { setEmail(JSON.parse(userRaw).email || '') } catch {}
     }
 
-    try { setEmail(JSON.parse(user).email || '') } catch {}
+    // Загружаем авто
+    apiClient.get('/cars/')
+      .then(data => setCars(data.results || []))
+      .catch(() => {})
+      .finally(() => setLoadingCars(false))
 
-    const car = localStorage.getItem('pioneer_car')
-    if (car) {
-      try {
-        const { brand, plate, tire } = JSON.parse(car)
-        setBrand(brand || '')
-        setPlate(plate || '')
-        setTire(tire || '')
-      } catch {}
-    }
-
-    setLoading(false)
+    // Загружаем историю записей
+    apiClient.get('/bookings/?ordering=-created_at')
+      .then(data => setBookings(data.results || []))
+      .catch(() => {})
+      .finally(() => setLoadingBookings(false))
   }, [])
 
-  const handleSave = () => {
-    localStorage.setItem('pioneer_car', JSON.stringify({ brand, plate, tire }))
-    setSaved(true)
-    setEditing(false)
-    setTimeout(() => setSaved(false), 2000)
+  const handleAddCar = async () => {
+    if (!carForm.brand || !carForm.plate) { setCarError('Заполните все поля'); return }
+    setCarError(null)
+    try {
+      const newCar = await apiClient.post('/cars/', {
+        brand: carForm.brand,
+        license_plate: carForm.plate.toUpperCase(),
+        wheel_diameter: parseInt(carForm.wheel_diameter),
+      })
+      setCars(prev => [...prev, newCar])
+      setAddingCar(false)
+      setCarForm({ brand: '', plate: '', wheel_diameter: 16 })
+    } catch (e) {
+      setCarError(e.message)
+    }
   }
 
-  if (loading) return null
+  const handleDeleteCar = async (carId) => {
+    try {
+      await apiClient.delete(`/cars/${carId}/`)
+      setCars(prev => prev.filter(c => c.id !== carId))
+    } catch {}
+  }
+
+  const handleLogout = async () => {
+    await logout()
+    router.push('/select-role')
+  }
 
   return (
     <div className="page-enter flex flex-col min-h-screen bg-white">
@@ -86,85 +104,73 @@ export default function ProfilePage() {
           </div>
         </div>
 
-        {/* Данные автомобиля */}
+        {/* Мои автомобили */}
         <div className="fade-in delay-1">
           <div className="flex items-center justify-between mb-3">
-            <div className="text-[12px] text-muted font-semibold uppercase tracking-widest">Мой автомобиль</div>
-            {!editing && (
-              <button onClick={() => setEditing(true)}
-                className="text-[13px] text-primary font-semibold bg-transparent border-none cursor-pointer p-0">
-                Изменить
-              </button>
-            )}
+            <div className="text-[12px] text-muted font-semibold uppercase tracking-widest">Мои автомобили</div>
+            <button onClick={() => setAddingCar(true)}
+              className="text-[13px] text-primary font-semibold bg-transparent border-none cursor-pointer p-0">
+              + Добавить
+            </button>
           </div>
 
-          <div className="flex flex-col gap-3">
-            <div>
-              <label className="block text-[13px] font-semibold text-txt mb-1.5">Марка автомобиля</label>
-              {editing ? (
-                <select value={brand} onChange={e => setBrand(e.target.value)}
-                  className="w-full px-[14px] py-3 rounded-[10px] text-[15px] text-txt border-[1.5px] border-border outline-none bg-white font-body">
-                  <option value="">Выберите марку</option>
-                  {CAR_BRANDS.map(b => <option key={b} value={b}>{b}</option>)}
-                </select>
-              ) : (
-                <div className="px-[14px] py-3 bg-gray-50 rounded-[10px] border border-border text-[15px] text-txt">
-                  {brand || <span className="text-muted">Не указано</span>}
+          {loadingCars ? (
+            <p className="text-[13px] text-muted">Загрузка...</p>
+          ) : cars.length === 0 && !addingCar ? (
+            <p className="text-[13px] text-muted">Нет добавленных автомобилей</p>
+          ) : (
+            <div className="flex flex-col gap-2">
+              {cars.map(car => (
+                <div key={car.id} className="flex items-center justify-between px-4 py-3 bg-gray-50 rounded-xl border border-border">
+                  <div>
+                    <div className="text-[14px] font-semibold text-txt">{car.brand}</div>
+                    <div className="text-[12px] text-muted">{car.license_plate} · R{car.wheel_diameter}</div>
+                  </div>
+                  <button onClick={() => handleDeleteCar(car.id)}
+                    className="text-[12px] text-red-400 bg-transparent border-none cursor-pointer p-0">
+                    Удалить
+                  </button>
                 </div>
-              )}
-            </div>
-
-            <div>
-              <label className="block text-[13px] font-semibold text-txt mb-1.5">Гос. номер</label>
-              {editing ? (
-                <input type="text" value={plate}
-                  onChange={e => setPlate(e.target.value.toUpperCase().slice(0, 9))}
-                  placeholder="А123БВ77"
-                  className="w-full px-[14px] py-3 rounded-[10px] text-[15px] text-txt border-[1.5px] border-border outline-none font-body tracking-widest uppercase"
-                />
-              ) : (
-                <div className="px-[14px] py-3 bg-gray-50 rounded-[10px] border border-border text-[15px] text-txt tracking-widest">
-                  {plate || <span className="text-muted">Не указано</span>}
-                </div>
-              )}
-            </div>
-
-            <div>
-              <label className="block text-[13px] font-semibold text-txt mb-1.5">Радиус шин</label>
-              {editing ? (
-                <div className="flex flex-wrap gap-2">
-                  {TIRE_SIZES.map(r => (
-                    <button key={r} onClick={() => setTire(r)}
-                      className={`px-4 py-2 rounded-lg text-[14px] font-semibold border-none cursor-pointer transition-all
-                        ${tire === r ? 'bg-primary text-white' : 'bg-gray-100 text-muted'}`}>
-                      {r}
-                    </button>
-                  ))}
-                </div>
-              ) : (
-                <div className="px-[14px] py-3 bg-gray-50 rounded-[10px] border border-border text-[15px] text-txt">
-                  {tire || <span className="text-muted">Не указано</span>}
-                </div>
-              )}
-            </div>
-          </div>
-
-          {editing && (
-            <div className="flex gap-3 mt-4">
-              <button onClick={() => setEditing(false)}
-                className="flex-1 py-3 rounded-xl bg-gray-100 text-muted font-brand text-[15px] font-bold border-none cursor-pointer">
-                ОТМЕНА
-              </button>
-              <button onClick={handleSave}
-                className="flex-1 py-3 rounded-xl bg-primary text-white font-brand text-[15px] font-bold border-none cursor-pointer">
-                СОХРАНИТЬ
-              </button>
+              ))}
             </div>
           )}
 
-          {saved && (
-            <div className="fade-in mt-3 px-4 py-2.5 bg-emerald-50 rounded-lg border border-emerald-200 text-[13px] text-emerald-600 text-center">
-              ✓ Данные сохранены
+          {/* Форма добавления авто */}
+          {addingCar && (
+            <div className="mt-3 flex flex-col gap-3 p-4 bg-gray-50 rounded-xl border border-border">
+              <select value={carForm.brand} onChange={e => setCarForm(p => ({ ...p, brand: e.target.value }))}
+                className="w-full px-[14px] py-3 rounded-[10px] text-[15px] text-txt border-[1.5px] border-border outline-none bg-white">
+                <option value="">Марка автомобиля</option>
+                {CAR_BRANDS.map(b => <option key={b} value={b}>{b}</option>)}
+              </select>
+              <input type="text" value={carForm.plate}
+                onChange={e => setCarForm(p => ({ ...p, plate: e.target.value.toUpperCase().slice(0, 9) }))}
+                placeholder="Гос. номер (А123БВ77)"
+                className="w-full px-[14px] py-3 rounded-[10px] text-[15px] text-txt border-[1.5px] border-border outline-none tracking-widest uppercase"
+              />
+              <div>
+                <label className="block text-[13px] font-semibold text-txt mb-2">Радиус шин</label>
+                <div className="flex flex-wrap gap-2">
+                  {[13,14,15,16,17,18,19,20].map(r => (
+                    <button key={r} onClick={() => setCarForm(p => ({ ...p, wheel_diameter: r }))}
+                      className={`px-4 py-2 rounded-lg text-[14px] font-semibold border-none cursor-pointer transition-all
+                        ${carForm.wheel_diameter === r ? 'bg-primary text-white' : 'bg-gray-100 text-muted'}`}>
+                      R{r}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              {carError && <p className="text-[12px] text-danger">⚠ {carError}</p>}
+              <div className="flex gap-3">
+                <button onClick={() => { setAddingCar(false); setCarError(null) }}
+                  className="flex-1 py-3 rounded-xl bg-gray-100 text-muted font-brand text-[15px] font-bold border-none cursor-pointer">
+                  ОТМЕНА
+                </button>
+                <button onClick={handleAddCar}
+                  className="flex-1 py-3 rounded-xl bg-primary text-white font-brand text-[15px] font-bold border-none cursor-pointer">
+                  СОХРАНИТЬ
+                </button>
+              </div>
             </div>
           )}
         </div>
@@ -172,30 +178,30 @@ export default function ProfilePage() {
         {/* История записей */}
         <div className="fade-in delay-2">
           <div className="text-[12px] text-muted font-semibold uppercase tracking-widest mb-3">История записей</div>
-          <div className="flex flex-col gap-2">
-            {MOCK_BOOKINGS.map(b => (
-              <div key={b.id} className="px-4 py-3 bg-white rounded-xl border border-border">
-                <div className="flex items-center justify-between mb-1">
-                  <span className="font-brand text-[15px] font-bold text-txt">{b.org}</span>
-                  <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${statusStyle[b.status]}`}>
-                    {statusLabel[b.status]}
-                  </span>
+          {loadingBookings ? (
+            <p className="text-[13px] text-muted">Загрузка...</p>
+          ) : bookings.length === 0 ? (
+            <p className="text-[13px] text-muted">Записей пока нет</p>
+          ) : (
+            <div className="flex flex-col gap-2">
+              {bookings.map(b => (
+                <div key={b.id} className="px-4 py-3 bg-white rounded-xl border border-border">
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="font-brand text-[15px] font-bold text-txt">{b.service_title || b.serviceMethod}</span>
+                    <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${statusStyle[b.status] || 'bg-gray-100 text-muted'}`}>
+                      {statusLabel[b.status] || b.status}
+                    </span>
+                  </div>
+                  <div className="text-[13px] text-muted">{b.dateTime || b.scheduled_at}</div>
+                  {b.price && <div className="text-[13px] font-semibold text-primary mt-0.5">{b.price} RUB</div>}
                 </div>
-                <div className="text-[13px] text-muted">{b.service} · {b.date} в {b.time}</div>
-                <div className="text-[13px] font-semibold text-primary mt-0.5">{b.price} RUB</div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Выход */}
-        <button
-          onClick={() => {
-            localStorage.removeItem('pioneer_user')
-            localStorage.removeItem('pioneer_token')
-            localStorage.removeItem('pioneer_car')
-            router.push('/select-role')
-          }}
+        <button onClick={handleLogout}
           className="fade-in delay-3 w-full py-3 rounded-xl border border-border bg-white text-danger font-brand text-[15px] font-bold cursor-pointer mt-2">
           ВЫЙТИ ИЗ АККАУНТА
         </button>

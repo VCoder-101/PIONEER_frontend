@@ -12,6 +12,7 @@ export default function RegisterPage() {
   const router = useRouter()
   const { user, loading, login } = useAuth()
   const [email, setEmail]           = useState('')
+  const [name, setName]             = useState('')
   const [code, setCode]             = useState('')
   const [codeSent, setCodeSent]     = useState(false)
   const [agreed, setAgreed]         = useState(false)
@@ -30,6 +31,7 @@ export default function RegisterPage() {
   const handleSendCode = async () => {
     const err = validateEmail()
     if (err) { setErrors({ email: err }); setShake(true); setTimeout(() => setShake(false), 500); return }
+    if (!name.trim()) { setErrors({ name: 'Введите ваше имя' }); return }
     if (!agreed) { setErrors({ agreed: 'Примите условия политики конфиденциальности' }); return }
     setSubmitting(true); setErrors({})
     try { await authService.sendEmailCode(email); setCodeSent(true) }
@@ -40,7 +42,11 @@ export default function RegisterPage() {
   const handleVerify = async () => {
     if (code.length < 4) { setErrors({ code: 'Введите код из письма' }); return }
     setSubmitting(true); setErrors({})
-    try { const data = await authService.verifyEmailCode(email, code); login(email, data.token); router.push('/services') }
+    try {
+      const data = await authService.verifyEmailCode(email, code, name)
+      login(email, data)
+      router.push('/services')
+    }
     catch { setErrors({ code: 'Неверный код. Попробуйте ещё раз.' }); setShake(true); setTimeout(() => setShake(false), 500) }
     finally { setSubmitting(false) }
   }
@@ -57,6 +63,7 @@ export default function RegisterPage() {
           <Link href="/login" className="text-primary font-semibold no-underline">Войти</Link>
         </p>
         <div className={`flex flex-col gap-5 ${shake ? 'shake' : ''}`}>
+
           <div className="fade-in delay-1">
             <label className="block text-[13px] font-semibold text-txt mb-1.5">Email</label>
             <input type="email" value={email} onChange={e => { setEmail(e.target.value); setErrors({}) }}
@@ -65,6 +72,17 @@ export default function RegisterPage() {
             />
             {errors.email && <p className="fade-in mt-1 text-[12px] text-danger">⚠ {errors.email}</p>}
           </div>
+
+          {!codeSent && (
+            <div className="fade-in delay-1">
+              <label className="block text-[13px] font-semibold text-txt mb-1.5">Ваше имя</label>
+              <input type="text" value={name} onChange={e => { setName(e.target.value); setErrors({}) }}
+                placeholder="Имя"
+                className={`w-full px-[14px] py-3 rounded-[10px] text-[15px] text-txt outline-none font-body transition-colors border-[1.5px] ${errors.name ? 'border-danger' : 'border-border'}`}
+              />
+              {errors.name && <p className="fade-in mt-1 text-[12px] text-danger">⚠ {errors.name}</p>}
+            </div>
+          )}
 
           {codeSent && (
             <div className="fade-in">
@@ -101,7 +119,7 @@ export default function RegisterPage() {
 
           <div className="fade-in delay-3">
             <Button fullWidth onClick={codeSent ? handleVerify : handleSendCode} disabled={submitting} className="py-4 text-[16px] font-brand tracking-widest">
-              {submitting ? 'ЗАГРУЗКА...' : codeSent ? 'ПОДТВЕРДИТЬ' : 'ПОЛУЧИТЬ КОД'}
+              {submitting ? 'ЗАГРУЗКА...' : codeSent ? 'ЗАРЕГИСТРИРОВАТЬСЯ' : 'ПОЛУЧИТЬ КОД'}
             </Button>
           </div>
         </div>

@@ -16,7 +16,7 @@ export default function ServicesPage() {
   const [selected, setSelected] = useState('wash')
   return (
     <div className="page-enter flex flex-col min-h-screen bg-white">
-      <TopBar title="УСЛУГИ" />
+      <TopBar title="УСЛУГИ" backHref="/select-role" />
       <div className="px-5 py-6 flex-1 flex flex-col">
         <p className="fade-in text-[13px] text-muted mb-4 uppercase tracking-widest font-medium">Выберите услугу</p>
         <div className="flex flex-col gap-3 mb-10">

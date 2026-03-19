@@ -1,37 +1,57 @@
-PIONEER — Агрегатор услуг для транспортных средств
+# PIONEER — Агрегатор услуг для транспортных средств
 
-Стек :
+## Стек
 
-Next.js 14 (App Router)
-React 18
-JavaScript (JSX)
-CSS Tailwind
+- Next.js 14 (App Router)
+- React 18
+- JavaScript (JSX)
+- Tailwind CSS
 
-Запуск проекта :
+## Запуск проекта
 
+```bash
 npm install
 npm run dev
+```
 
 Открыть в браузере: http://localhost:3000
 
-Структура проекта :
+## Продакшн сборка
 
-app/                    - экраны приложения
-  select-role/          - выбор роли
-  login/                - вход по email + код
-  register/             - регистрация
-  services/             - выбор услуги
-  organizations/        - поиск организации
-  service-details/      - состав услуги
-  booking-time/         - выбор времени
-  booking-confirm/      - подтверждение записи
+```bash
+npm run build
+npm start
+```
 
-components/ui/          - переиспользуемые компоненты
-api/                    - базовый HTTP клиент
-services/               - запросы к API
-hooks/                  - React хуки
-lib/                    - константы и утилиты
+## Структура проекта
 
-Демо режим
-Пока бэкенд не подключён, авторизация работает в демо режиме.
-Ввести любой email - код подтверждения: 4444
+```
+app/                   — экраны приложения
+  select-role/         — выбор роли (10.1)
+  login/               — вход по email + код
+  register/            — регистрация по email + код (10.2)
+  services/            — выбор услуги (10.3)
+  organizations/       — поиск организации (10.4)
+  service-details/     — состав услуги (10.5)
+  booking-time/        — выбор времени (10.6)
+  booking-confirm/     — подтверждение записи (10.7)
+  privacy/             — политика конфиденциальности
+  admin/requests/      — панель администратора (заглушка)
+  org/connect/         — подключение организации (заглушка)
+
+components/ui/         — переиспользуемые компоненты
+api/                   — базовый HTTP клиент (Bearer токен, обработка 401)
+services/              — запросы к API
+hooks/                 — React хуки (useAuth)
+lib/                   — константы и маршруты
+```
+
+## Демо режим
+
+Пока бэкенд не подключён, авторизация работает в демо режиме.  
+Ввести любой email — код подтверждения: **4444**
+
+Для подключения бэкенда:
+1. Создать `.env.local` по образцу `.env.local.example`
+2. Установить `NEXT_PUBLIC_API_URL=http://адрес-бэкенда`
+3. В `services/authService.js` установить `DEMO_MODE = false`

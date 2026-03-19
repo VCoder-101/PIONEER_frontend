@@ -1,19 +1,9 @@
 'use client'
-import { Suspense, useState } from 'react'
+import { Suspense, useState, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import TopBar from '@/components/ui/TopBar'
 import Footer from '@/components/ui/Footer'
-
-const MOCK_ORGANIZATIONS = [
-  { id: 1, name: 'Авангард',        address: 'Московское шоссе, д. 10' },
-  { id: 2, name: 'АвтоАдмирал',     address: 'ул. Ново-Садовая, д. 53' },
-  { id: 3, name: 'Автопилот',       address: 'ул. Победы, д. 32' },
-  { id: 4, name: 'АвтоПланета',     address: 'ул. Советской Армии, д. 95' },
-  { id: 5, name: 'Автосеть Самара', address: 'ул. Молодогвардейская, д. 77' },
-  { id: 6, name: 'АвтоСотта',       address: 'Заводское шоссе, д. 3' },
-  { id: 7, name: 'АвтоСПА',         address: 'ул. Дачная, д. 13' },
-  { id: 8, name: 'АвтоФорсаж',      address: 'ул. Промышленности, д. 22' },
-]
+import { apiClient } from '@/api/client'
 
 const SearchIcon = () => (
   <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
@@ -25,12 +15,33 @@ function OrganizationsContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const serviceId = searchParams.get('service') || 'wash'
-  const [query, setQuery]       = useState('')
-  const [searched, setSearched] = useState(false)
 
-  const results = searched
-    ? MOCK_ORGANIZATIONS.filter(o => o.name.toLowerCase().includes(query.toLowerCase()))
-    : MOCK_ORGANIZATIONS
+  const [organizations, setOrganizations] = useState([])
+  const [query, setQuery]   = useState('')
+  const [loading, setLoading] = useState(true)
+  const [error, setError]   = useState(null)
+
+  useEffect(() => {
+    const fetchOrgs = async () => {
+      try {
+        setLoading(true)
+        // Получаем только одобренные активные организации
+        const data = await apiClient.get(
+          `/organizations/?organization_status=approved&is_active=true&organization_type=${serviceId}`
+        )
+        setOrganizations(data.results || [])
+      } catch (e) {
+        setError(e.message)
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchOrgs()
+  }, [])
+
+  const results = organizations.filter(o =>
+    query ? o.name.toLowerCase().includes(query.toLowerCase()) : true
+  )
 
   const handleSelectOrg = (org) =>
     router.push(`/service-details?service=${serviceId}&orgId=${org.id}&orgName=${encodeURIComponent(org.name)}&orgAddress=${encodeURIComponent(org.address)}`)
@@ -41,19 +52,31 @@ function OrganizationsContent() {
         <span className="text-base">📍</span>
         <span className="text-[14px] font-semibold text-primary">Самара</span>
       </div>
+
       <div className="flex gap-2 mb-4">
-        <input value={query} onChange={e => { setQuery(e.target.value); setSearched(true) }}
+        <input value={query} onChange={e => setQuery(e.target.value)}
           placeholder="Поиск по названию..."
           className="flex-1 px-[14px] py-3 border-[1.5px] border-border rounded-[10px] text-[15px] text-txt outline-none font-body" />
         <button className="px-4 py-3 rounded-[10px] bg-primary text-white border-none cursor-pointer flex items-center justify-center">
           <SearchIcon />
         </button>
       </div>
-      {results.length > 0 ? (
+
+      {loading && (
+        <div className="text-center py-12 text-muted text-[14px]">Загрузка...</div>
+      )}
+
+      {error && (
+        <div className="text-center py-6 px-4 bg-red-50 rounded-xl border border-red-200 text-[13px] text-red-600">
+          ❌ {error}
+        </div>
+      )}
+
+      {!loading && !error && results.length > 0 && (
         <div className="border border-border rounded-xl overflow-hidden">
           {results.map((org, idx) => (
             <button key={org.id} onClick={() => handleSelectOrg(org)}
-              className={`fade-in delay-${Math.min(idx + 1, 5)} w-full text-left px-4 py-[14px] border-none cursor-pointer
+              className={`w-full text-left px-4 py-[14px] border-none cursor-pointer
                 ${idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}
                 ${idx < results.length - 1 ? 'border-b border-border' : ''}`}>
               <div className="text-[15px] text-primary font-medium">{org.name}</div>
@@ -61,7 +84,9 @@ function OrganizationsContent() {
             </button>
           ))}
         </div>
-      ) : (
+      )}
+
+      {!loading && !error && results.length === 0 && (
         <div className="fade-in text-center py-12 px-6">
           <div className="text-[56px] mb-4">🏢</div>
           <p className="text-[16px] font-semibold text-txt mb-2">Организации не найдены</p>

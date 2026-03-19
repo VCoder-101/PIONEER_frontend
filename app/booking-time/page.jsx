@@ -18,13 +18,14 @@ function BookingTimeContent() {
   const orgAddress    = searchParams.get('orgAddress')    || 'Походный проезд, д. 10'
   const totalPrice    = searchParams.get('totalPrice')    || '0'
   const totalDuration = searchParams.get('totalDuration') || '0'
+  const serviceApiId  = searchParams.get('serviceApiId')  || ''
   let works = []; try { works = JSON.parse(searchParams.get('works') || '[]') } catch {}
 
   const [day, setDay]           = useState('today')
   const [timeSlot, setTimeSlot] = useState(null)
 
   const handleSelect = () => {
-    const params = new URLSearchParams({ service: serviceId, orgName, orgAddress, day, time: timeSlot, totalPrice, totalDuration, works: JSON.stringify(works) })
+    const params = new URLSearchParams({ service: serviceId, orgName, orgAddress, day, time: timeSlot, totalPrice, totalDuration, works: JSON.stringify(works), serviceApiId })
     router.push(`/booking-confirm?${params.toString()}`)
   }
 
@@ -37,14 +38,20 @@ function BookingTimeContent() {
       <div className="px-[14px] py-3 mb-4 bg-gray-50 rounded-[10px] border border-border">
         <div className="text-[12px] text-muted font-semibold uppercase tracking-widest mb-2">Услуги:</div>
         {works.map((w, i) => (
-          <div key={i} className="flex justify-between text-[13px] text-txt mb-1">
-            <span>{w.code}. {w.name}</span>
-            <span className="text-muted shrink-0 ml-2">{w.price} RUB {w.duration} мин</span>
+          <div key={i} className="flex justify-between items-start text-[13px] text-txt mb-1">
+            <span>{w.title || w.name || w.code}</span>
+            <div className="text-right shrink-0 ml-2">
+              <div className="text-muted">{w.price} RUB</div>
+              <div className="text-muted text-[11px]">{w.duration} мин</div>
+            </div>
           </div>
         ))}
-        <div className="border-t border-border mt-2 pt-2 flex justify-between">
+        <div className="border-t border-border mt-2 pt-2 flex justify-between items-center">
           <span className="text-[13px] font-semibold text-txt">Итого:</span>
-          <span className="text-[13px] font-bold text-primary">{totalPrice} RUB {totalDuration} мин</span>
+          <div className="text-right">
+            <div className="text-[13px] font-bold text-primary">{totalPrice} RUB</div>
+            <div className="text-[11px] text-muted">{totalDuration} мин</div>
+          </div>
         </div>
       </div>
       <div className="flex gap-2 mb-4">

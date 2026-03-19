@@ -1,6 +1,7 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import TopBar from '@/components/ui/TopBar'
 import Footer from '@/components/ui/Footer'
 import Button from '@/components/ui/Button'
@@ -14,28 +15,27 @@ export default function LoginPage() {
   const [email, setEmail]           = useState('')
   const [code, setCode]             = useState('')
   const [userName, setUserName]     = useState('')
+  const [agreed, setAgreed]         = useState(false)
   const [codeSent, setCodeSent]     = useState(false)
-  const [authType, setAuthType]     = useState('login') // 'login' | 'registration'
+  const [authType, setAuthType]     = useState('login')
   const [errors, setErrors]         = useState({})
   const [submitting, setSubmitting] = useState(false)
   const [shake, setShake]           = useState(false)
 
   useEffect(() => { if (!loading && user) router.replace('/services') }, [user, loading])
 
-  const validateEmail = () => {
-    if (!email.trim()) return 'Введите email'
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return 'Некорректный email'
-    return null
-  }
+  const triggerShake = () => { setShake(true); setTimeout(() => setShake(false), 500) }
+
+  const isRegistration = authType === 'registration' || authType === 'complete_registration'
 
   const handleSendCode = async () => {
-    const err = validateEmail()
-    if (err) { setErrors({ email: err }); setShake(true); setTimeout(() => setShake(false), 500); return }
+    if (!email.trim()) { setErrors({ email: 'Введите email' }); triggerShake(); return }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { setErrors({ email: 'Некорректный email' }); triggerShake(); return }
     setSubmitting(true); setErrors({})
     try {
       const result = await authService.sendEmailCode(email)
-      // если бэкенд вернул auth_type — используем его, иначе дефолт
-      if (result?.auth_type) setAuthType(result.auth_type)
+      const type = result?.auth_type || 'login'
+      setAuthType(type)
       setCodeSent(true)
     } catch (e) {
       setErrors({ server: e.message || 'Ошибка отправки кода' })
@@ -43,18 +43,17 @@ export default function LoginPage() {
   }
 
   const handleVerify = async () => {
-    if (code.length < 4) { setErrors({ code: 'Введите код из письма' }); return }
-    if (authType === 'registration' && !userName.trim()) {
-      setErrors({ userName: 'Введите имя' }); return
-    }
+    if (isRegistration && !userName.trim()) { setErrors({ userName: 'Введите ваше имя' }); triggerShake(); return }
+    if (isRegistration && !agreed) { setErrors({ agreed: 'Примите условия политики конфиденциальности' }); triggerShake(); return }
+    if (code.length < 4) { setErrors({ code: 'Введите код из письма' }); triggerShake(); return }
     setSubmitting(true); setErrors({})
     try {
-      const data = await authService.verifyEmailCode(email, code)
-      login(email, data.token)
+      const data = await authService.verifyEmailCode(email, code, isRegistration ? userName : '')
+      login(email, data)
       router.push('/services')
-    } catch {
-      setErrors({ code: 'Неверный код. Попробуйте ещё раз.' })
-      setShake(true); setTimeout(() => setShake(false), 500)
+    } catch (e) {
+      setErrors({ code: e.message || 'Неверный код. Попробуйте ещё раз.' })
+      triggerShake()
     } finally { setSubmitting(false) }
   }
 
@@ -64,15 +63,14 @@ export default function LoginPage() {
     <div className="page-enter flex flex-col min-h-screen bg-white">
       <TopBar backHref="/select-role" hideProfile />
       <div className="px-6 pt-8 pb-6 flex-1 flex flex-col">
-
         <h1 className="fade-in font-brand text-[26px] font-bold text-txt tracking-widest text-center mb-8">
-          {authType === 'registration' ? 'РЕГИСТРАЦИЯ' : 'ВХОД'}
+          {isRegistration ? 'РЕГИСТРАЦИЯ' : 'ВХОД'}
         </h1>
 
         <div className={`flex flex-col gap-5 ${shake ? 'shake' : ''}`}>
 
           {/* Email */}
-          <div className="fade-in delay-1">
+          <div className="fade-in">
             <label className="block text-[13px] font-semibold text-txt mb-1.5">Email</label>
             <input type="email" value={email}
               onChange={e => { setEmail(e.target.value); setErrors({}) }}
@@ -83,8 +81,8 @@ export default function LoginPage() {
             {errors.email && <p className="fade-in mt-1 text-[12px] text-danger">⚠ {errors.email}</p>}
           </div>
 
-          {/* Имя — только при регистрации */}
-          {authType === 'registration' && !codeSent && (
+          {/* Имя — появляется при регистрации после отправки кода */}
+          {isRegistration && codeSent && (
             <div className="fade-in">
               <label className="block text-[13px] font-semibold text-txt mb-1.5">Ваше имя</label>
               <input type="text" value={userName}
@@ -97,7 +95,7 @@ export default function LoginPage() {
             </div>
           )}
 
-          {/* Код */}
+          {/* Код — появляется после отправки */}
           {codeSent && (
             <div className="fade-in">
               <label className="block text-[13px] font-semibold text-txt mb-1.5">Код из письма</label>
@@ -109,30 +107,39 @@ export default function LoginPage() {
                   ${errors.code ? 'border-danger' : 'border-border'}`}
               />
               {errors.code && <p className="fade-in mt-1 text-[12px] text-danger">⚠ {errors.code}</p>}
-              <button onClick={handleSendCode}
-                className="mt-2 bg-transparent border-none text-primary text-[13px] cursor-pointer underline p-0">
+              <button onClick={handleSendCode} className="mt-2 bg-transparent border-none text-primary text-[13px] cursor-pointer underline p-0">
                 Отправить код повторно
               </button>
             </div>
           )}
 
-          {/* Ошибка сервера */}
+          {/* Галочка — при регистрации после отправки кода */}
+          {isRegistration && codeSent && (
+            <>
+              <label className="fade-in flex items-start gap-2.5 cursor-pointer">
+                <input type="checkbox" checked={agreed} onChange={e => { setAgreed(e.target.checked); setErrors({}) }}
+                  className="w-[18px] h-[18px] mt-0.5 accent-primary cursor-pointer shrink-0" />
+                <span className="text-[13px] text-muted leading-relaxed">
+                  Принимаю условия{' '}
+                  <Link href="/privacy" className="text-primary underline">политики конфиденциальности</Link>
+                </span>
+              </label>
+              {errors.agreed && <p className="fade-in -mt-3 text-[12px] text-danger">⚠ {errors.agreed}</p>}
+            </>
+          )}
+
           {errors.server && (
             <div className="fade-in px-[14px] py-2.5 bg-red-50 rounded-lg border border-red-300 text-[13px] text-red-600">
               ❌ {errors.server}
             </div>
           )}
 
-          {/* Кнопка */}
-          <div className="fade-in delay-2">
-            <Button fullWidth onClick={codeSent ? handleVerify : handleSendCode} disabled={submitting}
-              className="py-4 text-[16px] font-brand tracking-widest">
-              {submitting ? 'ЗАГРУЗКА...' : codeSent ? (authType === 'registration' ? 'ЗАРЕГИСТРИРОВАТЬСЯ' : 'ВОЙТИ') : 'ПОЛУЧИТЬ КОД'}
-            </Button>
-          </div>
+          <Button fullWidth onClick={codeSent ? handleVerify : handleSendCode} disabled={submitting}
+            className="py-4 text-[16px] font-brand tracking-widest">
+            {submitting ? 'ЗАГРУЗКА...' : codeSent ? (isRegistration ? 'ЗАРЕГИСТРИРОВАТЬСЯ' : 'ВОЙТИ') : 'ПОЛУЧИТЬ КОД'}
+          </Button>
 
-          {/* Ссылка на регистрацию — только в режиме входа */}
-          {!codeSent && authType === 'login' && (
+          {!codeSent && (
             <p className="fade-in text-center text-[13px] text-muted">
               Нет аккаунта?{' '}
               <button onClick={() => router.push('/register')}
