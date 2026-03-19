@@ -24,14 +24,14 @@ export default function ProfilePage() {
   const router = useRouter()
   const { user, logout } = useAuth()
 
-  const [email, setEmail]     = useState('')
-  const [cars, setCars]       = useState([])
+  const [email, setEmail]   = useState('')
+  const [name, setName]       = useState('')
+  const [phone, setPhone]     = useState('')
+  const [cars, setCars]     = useState([])
   const [bookings, setBookings] = useState([])
-  const [loadingCars, setLoadingCars]       = useState(true)
+  const [loadingCars, setLoadingCars]         = useState(true)
   const [loadingBookings, setLoadingBookings] = useState(true)
-  const [editing, setEditing] = useState(false)
-  const [saved, setSaved]     = useState(false)
-  const [carForm, setCarForm] = useState({ brand: '', plate: '', wheel_diameter: 16 })
+  const [carForm, setCarForm]   = useState({ brand: '', plate: '', wheel_diameter: 16 })
   const [addingCar, setAddingCar] = useState(false)
   const [carError, setCarError]   = useState(null)
 
@@ -39,16 +39,23 @@ export default function ProfilePage() {
     const token = localStorage.getItem('pioneer_token')
     if (!token) { router.replace('/login'); return }
 
-    const userRaw = localStorage.getItem('pioneer_user')
-    if (userRaw) {
-      try { setEmail(JSON.parse(userRaw).email || '') } catch {}
-    }
-
-    // Загружаем авто
-    apiClient.get('/cars/')
-      .then(data => setCars(data.results || []))
-      .catch(() => {})
-      .finally(() => setLoadingCars(false))
+    // Загружаем профиль с бэка
+    apiClient.get('/users/me/')
+      .then(data => {
+        setEmail(data.email || '')
+        setName(data.name || '')
+        setPhone(data.phone || '')
+        setCars(data.cars || [])
+        setLoadingCars(false)
+      })
+      .catch(() => {
+        // fallback на localStorage
+        const userRaw = localStorage.getItem('pioneer_user')
+        if (userRaw) {
+          try { const u = JSON.parse(userRaw); setEmail(u.email || ''); setName(u.name || '') } catch {}
+        }
+        setLoadingCars(false)
+      })
 
     // Загружаем историю записей
     apiClient.get('/bookings/?ordering=-created_at')
@@ -69,9 +76,7 @@ export default function ProfilePage() {
       setCars(prev => [...prev, newCar])
       setAddingCar(false)
       setCarForm({ brand: '', plate: '', wheel_diameter: 16 })
-    } catch (e) {
-      setCarError(e.message)
-    }
+    } catch (e) { setCarError(e.message) }
   }
 
   const handleDeleteCar = async (carId) => {
@@ -79,6 +84,15 @@ export default function ProfilePage() {
       await apiClient.delete(`/cars/${carId}/`)
       setCars(prev => prev.filter(c => c.id !== carId))
     } catch {}
+  }
+
+  const handleCancelBooking = async (bookingId) => {
+    try {
+      await apiClient.post(`/bookings/${bookingId}/cancel/`, {})
+      setBookings(prev => prev.map(b => b.id === bookingId ? { ...b, status: 'CANCELLED' } : b))
+    } catch (e) {
+      alert(e.message || 'Ошибка отмены записи')
+    }
   }
 
   const handleLogout = async () => {
@@ -92,7 +106,7 @@ export default function ProfilePage() {
 
       <div className="px-5 py-6 flex-1 flex flex-col gap-5">
 
-        {/* Email */}
+        {/* Аккаунт */}
         <div className="fade-in">
           <div className="text-[12px] text-muted font-semibold uppercase tracking-widest mb-3">Аккаунт</div>
           <div className="flex items-center gap-3 px-4 py-3 bg-gray-50 rounded-xl border border-border">
@@ -103,6 +117,32 @@ export default function ProfilePage() {
             <span className="text-[14px] text-txt">{email || '—'}</span>
           </div>
         </div>
+
+        {/* Имя */}
+        {name ? (
+          <div className="fade-in">
+            <div className="text-[12px] text-muted font-semibold uppercase tracking-widest mb-3">Имя</div>
+            <div className="flex items-center gap-3 px-4 py-3 bg-gray-50 rounded-xl border border-border">
+              <svg width="18" height="18" fill="none" stroke="#6b7280" strokeWidth="2" viewBox="0 0 24 24">
+                <circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
+              </svg>
+              <span className="text-[14px] text-txt">{name}</span>
+            </div>
+          </div>
+        ) : null}
+
+        {/* Телефон */}
+        {phone ? (
+          <div className="fade-in">
+            <div className="text-[12px] text-muted font-semibold uppercase tracking-widest mb-3">Телефон</div>
+            <div className="flex items-center gap-3 px-4 py-3 bg-gray-50 rounded-xl border border-border">
+              <svg width="18" height="18" fill="none" stroke="#6b7280" strokeWidth="2" viewBox="0 0 24 24">
+                <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 1.27h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.91a16 16 0 0 0 6 6l.91-.91a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7a2 2 0 0 1 1.72 2.02z"/>
+              </svg>
+              <span className="text-[14px] text-txt">{phone}</span>
+            </div>
+          </div>
+        ) : null}
 
         {/* Мои автомобили */}
         <div className="fade-in delay-1">
@@ -135,7 +175,6 @@ export default function ProfilePage() {
             </div>
           )}
 
-          {/* Форма добавления авто */}
           {addingCar && (
             <div className="mt-3 flex flex-col gap-3 p-4 bg-gray-50 rounded-xl border border-border">
               <select value={carForm.brand} onChange={e => setCarForm(p => ({ ...p, brand: e.target.value }))}
@@ -187,13 +226,20 @@ export default function ProfilePage() {
               {bookings.map(b => (
                 <div key={b.id} className="px-4 py-3 bg-white rounded-xl border border-border">
                   <div className="flex items-center justify-between mb-1">
-                    <span className="font-brand text-[15px] font-bold text-txt">{b.service_title || b.serviceMethod}</span>
+                    <span className="text-[14px] font-semibold text-txt">{b.service_title || b.serviceMethod}</span>
                     <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${statusStyle[b.status] || 'bg-gray-100 text-muted'}`}>
                       {statusLabel[b.status] || b.status}
                     </span>
                   </div>
-                  <div className="text-[13px] text-muted">{b.dateTime || b.scheduled_at}</div>
+                  <div className="text-[12px] text-muted">{b.dateTime}</div>
+                  <div className="text-[12px] text-muted">{b.carModel} · R{b.wheelDiameter}</div>
                   {b.price && <div className="text-[13px] font-semibold text-primary mt-0.5">{b.price} RUB</div>}
+                  {(b.status === 'NEW' || b.status === 'CONFIRMED') && (
+                    <button onClick={() => handleCancelBooking(b.id)}
+                      className="mt-2 text-[12px] text-red-400 bg-transparent border-none cursor-pointer p-0 underline">
+                      Отменить запись
+                    </button>
+                  )}
                 </div>
               ))}
             </div>

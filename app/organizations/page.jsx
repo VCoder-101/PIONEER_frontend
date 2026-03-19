@@ -20,8 +20,15 @@ function OrganizationsContent() {
   const [query, setQuery]   = useState('')
   const [loading, setLoading] = useState(true)
   const [error, setError]   = useState(null)
+  const [cityName, setCityName] = useState('Самара')
 
   useEffect(() => {
+    // Загружаем город
+    apiClient.get('/organizations/cities/').then(data => {
+      const cities = data.results || data
+      if (cities.length > 0) setCityName(cities[0].name)
+    }).catch(() => {})
+
     const fetchOrgs = async () => {
       try {
         setLoading(true)
@@ -50,7 +57,7 @@ function OrganizationsContent() {
     <div className="p-4">
       <div className="flex items-center gap-2 px-[14px] py-2.5 mb-4 bg-primary-l rounded-[10px] border border-primary">
         <span className="text-base">📍</span>
-        <span className="text-[14px] font-semibold text-primary">Самара</span>
+        <span className="text-[14px] font-semibold text-primary">{cityName}</span>
       </div>
 
       <div className="flex gap-2 mb-4">

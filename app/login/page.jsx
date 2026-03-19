@@ -15,6 +15,7 @@ export default function LoginPage() {
   const [email, setEmail]           = useState('')
   const [code, setCode]             = useState('')
   const [userName, setUserName]     = useState('')
+  const [userPhone, setUserPhone]   = useState('')
   const [agreed, setAgreed]         = useState(false)
   const [codeSent, setCodeSent]     = useState(false)
   const [authType, setAuthType]     = useState('login')
@@ -44,11 +45,12 @@ export default function LoginPage() {
 
   const handleVerify = async () => {
     if (isRegistration && !userName.trim()) { setErrors({ userName: 'Введите ваше имя' }); triggerShake(); return }
+    if (isRegistration && !userPhone.trim()) { setErrors({ userPhone: 'Введите номер телефона' }); triggerShake(); return }
     if (isRegistration && !agreed) { setErrors({ agreed: 'Примите условия политики конфиденциальности' }); triggerShake(); return }
     if (code.length < 4) { setErrors({ code: 'Введите код из письма' }); triggerShake(); return }
     setSubmitting(true); setErrors({})
     try {
-      const data = await authService.verifyEmailCode(email, code, isRegistration ? userName : '')
+      const data = await authService.verifyEmailCode(email, code, isRegistration ? userName : '', isRegistration ? userPhone : '')
       login(email, data)
       router.push('/services')
     } catch (e) {
@@ -81,7 +83,7 @@ export default function LoginPage() {
             {errors.email && <p className="fade-in mt-1 text-[12px] text-danger">⚠ {errors.email}</p>}
           </div>
 
-          {/* Имя — появляется при регистрации после отправки кода */}
+          {/* Имя — при регистрации после отправки кода */}
           {isRegistration && codeSent && (
             <div className="fade-in">
               <label className="block text-[13px] font-semibold text-txt mb-1.5">Ваше имя</label>
@@ -95,7 +97,21 @@ export default function LoginPage() {
             </div>
           )}
 
-          {/* Код — появляется после отправки */}
+          {/* Телефон — при регистрации после отправки кода */}
+          {isRegistration && codeSent && (
+            <div className="fade-in">
+              <label className="block text-[13px] font-semibold text-txt mb-1.5">Номер телефона</label>
+              <input type="tel" value={userPhone}
+                onChange={e => { setUserPhone(e.target.value); setErrors({}) }}
+                placeholder="+7 900 123-45-67"
+                className={`w-full px-[14px] py-3 rounded-[10px] text-[15px] text-txt outline-none font-body transition-colors border-[1.5px]
+                  ${errors.userPhone ? 'border-danger' : 'border-border'}`}
+              />
+              {errors.userPhone && <p className="fade-in mt-1 text-[12px] text-danger">⚠ {errors.userPhone}</p>}
+            </div>
+          )}
+
+          {/* Код — после отправки */}
           {codeSent && (
             <div className="fade-in">
               <label className="block text-[13px] font-semibold text-txt mb-1.5">Код из письма</label>
@@ -113,7 +129,7 @@ export default function LoginPage() {
             </div>
           )}
 
-          {/* Галочка — при регистрации после отправки кода */}
+          {/* Галочка — при регистрации */}
           {isRegistration && codeSent && (
             <>
               <label className="fade-in flex items-start gap-2.5 cursor-pointer">

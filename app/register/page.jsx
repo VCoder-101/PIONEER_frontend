@@ -13,6 +13,7 @@ export default function RegisterPage() {
   const { user, loading, login } = useAuth()
   const [email, setEmail]           = useState('')
   const [name, setName]             = useState('')
+  const [phone, setPhone]           = useState('')
   const [code, setCode]             = useState('')
   const [codeSent, setCodeSent]     = useState(false)
   const [agreed, setAgreed]         = useState(false)
@@ -32,6 +33,7 @@ export default function RegisterPage() {
     const err = validateEmail()
     if (err) { setErrors({ email: err }); setShake(true); setTimeout(() => setShake(false), 500); return }
     if (!name.trim()) { setErrors({ name: 'Введите ваше имя' }); return }
+    if (!phone.trim()) { setErrors({ phone: 'Введите номер телефона' }); return }
     if (!agreed) { setErrors({ agreed: 'Примите условия политики конфиденциальности' }); return }
     setSubmitting(true); setErrors({})
     try { await authService.sendEmailCode(email); setCodeSent(true) }
@@ -43,7 +45,7 @@ export default function RegisterPage() {
     if (code.length < 4) { setErrors({ code: 'Введите код из письма' }); return }
     setSubmitting(true); setErrors({})
     try {
-      const data = await authService.verifyEmailCode(email, code, name)
+      const data = await authService.verifyEmailCode(email, code, name, phone)
       login(email, data)
       router.push('/services')
     }
@@ -81,6 +83,17 @@ export default function RegisterPage() {
                 className={`w-full px-[14px] py-3 rounded-[10px] text-[15px] text-txt outline-none font-body transition-colors border-[1.5px] ${errors.name ? 'border-danger' : 'border-border'}`}
               />
               {errors.name && <p className="fade-in mt-1 text-[12px] text-danger">⚠ {errors.name}</p>}
+            </div>
+          )}
+
+          {!codeSent && (
+            <div className="fade-in delay-1">
+              <label className="block text-[13px] font-semibold text-txt mb-1.5">Номер телефона</label>
+              <input type="tel" value={phone} onChange={e => { setPhone(e.target.value); setErrors({}) }}
+                placeholder="+7 900 123-45-67"
+                className={`w-full px-[14px] py-3 rounded-[10px] text-[15px] text-txt outline-none font-body transition-colors border-[1.5px] ${errors.phone ? 'border-danger' : 'border-border'}`}
+              />
+              {errors.phone && <p className="fade-in mt-1 text-[12px] text-danger">⚠ {errors.phone}</p>}
             </div>
           )}
 

@@ -41,7 +41,6 @@ function BookingConfirmContent() {
 
       setLoading(true)
       try {
-        // Берём данные авто с бэкенда
         let carBrand = ''
         let carWheelDiameter = 16
         try {
@@ -57,16 +56,12 @@ function BookingConfirmContent() {
           carWheelDiameter = cars[0].wheel_diameter || 16
         } catch {}
 
-        // Формируем дату в локальном времени
         const now = new Date()
         if (day === 'tomorrow') now.setDate(now.getDate() + 1)
         const [hours, minutes] = (time || '10:00').split(':')
         now.setHours(parseInt(hours), parseInt(minutes), 0, 0)
         const pad = n => String(n).padStart(2, '0')
         const scheduledAt = now.getFullYear() + '-' + pad(now.getMonth()+1) + '-' + pad(now.getDate()) + 'T' + pad(now.getHours()) + ':' + pad(now.getMinutes()) + ':00'
-
-        const userRaw = localStorage.getItem('pioneer_user')
-        const userData = userRaw ? JSON.parse(userRaw) : {}
 
         await apiClient.post('/bookings/', {
           service: svcId,
@@ -75,7 +70,6 @@ function BookingConfirmContent() {
           status: 'NEW',
           carModel: carBrand,
           wheelDiameter: carWheelDiameter,
-          user: userData.id || '',
         })
         setBooked(true)
       } catch (e) {
@@ -100,11 +94,11 @@ function BookingConfirmContent() {
         <div className="text-[40px] mb-3">🚗</div>
         <h2 className="font-brand text-[18px] font-bold text-txt mb-2 tracking-wide">Нет автомобиля</h2>
         <p className="text-[13px] text-muted mb-5">Добавьте хотя бы один автомобиль в личном кабинете, чтобы записаться на услугу</p>
-        <button onClick={() => router.push("/profile")}
+        <button onClick={() => router.push('/profile')}
           className="w-full py-3 bg-primary text-white rounded-xl font-brand text-[15px] font-bold tracking-widest border-none cursor-pointer mb-2">
           ПЕРЕЙТИ В ПРОФИЛЬ
         </button>
-        <button onClick={() => router.push("/services")}
+        <button onClick={() => router.push('/services')}
           className="w-full py-3 bg-gray-100 text-muted rounded-xl font-brand text-[15px] font-bold tracking-widest border-none cursor-pointer">
           НА ГЛАВНУЮ
         </button>
@@ -114,9 +108,6 @@ function BookingConfirmContent() {
 
   return (
     <div className="flex-1 flex flex-col items-center px-6 py-10">
-
-
-
       <div className="w-24 h-24 rounded-full bg-primary flex items-center justify-center mb-6 shadow-[0_8px_24px_rgba(26,86,219,0.3)]">
         <CheckIcon />
       </div>
@@ -139,12 +130,6 @@ function BookingConfirmContent() {
         </div>
       </div>
 
-      <div className="w-full px-4 py-3 bg-primary-l rounded-[10px] border border-primary-b mb-8">
-        <p className="text-[13px] text-primary leading-relaxed m-0">
-          ✉️ Подтверждение записи будет отправлено на вашу почту. Проверьте входящие письма.
-        </p>
-      </div>
-
       {error && (
         <div className="w-full px-4 py-3 bg-red-50 rounded-xl border border-red-200 text-[13px] text-red-600 mb-4">
           ⚠ {error}
@@ -162,7 +147,7 @@ function BookingConfirmContent() {
 export default function BookingConfirmPage() {
   return (
     <div className="page-enter flex flex-col min-h-screen bg-white">
-      <TopBar title="ЗАПИСЬ ПОДТВЕРЖДЕНА" />
+      <TopBar title="ЗАПИСЬ ПОДТВЕРЖДЕНА" hideProfile />
       <Suspense fallback={<div className="flex-1 flex items-center justify-center text-muted text-[14px]">Загрузка...</div>}>
         <BookingConfirmContent />
       </Suspense>

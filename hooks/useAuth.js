@@ -27,6 +27,7 @@ export function useAuth() {
       id: data?.user?.id || '',
       email,
       name: data?.user?.name || '',
+      phone: data?.user?.phone || '',
       role: data?.user?.role || 'CLIENT',
       loggedAt: Date.now(),
     }
