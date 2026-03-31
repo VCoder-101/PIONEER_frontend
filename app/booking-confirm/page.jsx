@@ -3,7 +3,7 @@ import { Suspense, useState, useEffect, useRef } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import TopBar from '@/components/ui/TopBar'
 import Footer from '@/components/ui/Footer'
-import { apiClient } from '@/api/client'
+import { apiClient } from '@/lib/authFetch'
 
 const CheckIcon = () => (
   <svg width="56" height="56" fill="none" stroke="white" strokeWidth="3" viewBox="0 0 24 24">

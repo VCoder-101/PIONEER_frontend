@@ -3,7 +3,7 @@ import { Suspense, useState, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import TopBar from '@/components/ui/TopBar'
 import Footer from '@/components/ui/Footer'
-import { apiClient } from '@/api/client'
+import { apiClient } from '@/lib/authFetch'
 
 const SearchIcon = () => (
   <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">

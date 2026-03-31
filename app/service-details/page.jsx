@@ -3,7 +3,7 @@ import { Suspense, useState, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import TopBar from '@/components/ui/TopBar'
 import Footer from '@/components/ui/Footer'
-import { apiClient } from '@/api/client'
+import { apiClient } from '@/lib/authFetch'
 
 function ServiceDetailsContent() {
   const router = useRouter()
