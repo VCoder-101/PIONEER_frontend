@@ -5,7 +5,9 @@ import TopBar from '@/components/ui/TopBar'
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/componentsShadCN/ui/accordion'
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/componentsShadCN/ui/alert-dialog'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/componentsShadCN/ui/card'
+import { Field, FieldLabel } from '@/componentsShadCN/ui/field'
 import { Input } from '@/componentsShadCN/ui/input'
+import { InputGroup, InputGroupAddon, InputGroupInput, InputGroupText } from '@/componentsShadCN/ui/input-group'
 import { Label } from '@/componentsShadCN/ui/label'
 import { RadioGroup, RadioGroupItem } from '@/componentsShadCN/ui/radio-group'
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/componentsShadCN/ui/select'
@@ -22,15 +24,13 @@ import { toast } from 'sonner'
 export default function OrgConnectPage() {
   const { userData } = useAuth()
   const router = useRouter()
-  const [loadingStatus, setLoadingStatus] = useState(true)
   const [statusAuth, setStatusAuth] = useState(false)
   const [organizationData, setOrganizationData] = useState([])
 
   const getOrganizationData = async () => {
     let access_token
     access_token = localStorage.getItem("pioneer_token")
-    //setLoadingStatus(false)
-    //console.log(access_token)
+
     const response = await fetch('http://localhost:8000/api/organizations/', {
         method: 'GET',
         headers: {
@@ -56,17 +56,44 @@ export default function OrgConnectPage() {
 
   const handleChange = (e) => {
     const { name, value } = e.target
+    setInputErrors(prev => {
+      const newErrors = { ...prev }
+      delete newErrors[name]
+      return newErrors
+    })
     setFormData(prev => ({
       ...prev,
       [name]: value
     }))
   }
 
+  const [inputErrors, setInputErrors] = useState([])
+
   const connectCustomer = async (e) => {
     e.preventDefault()
+    let errors = {}
+    if(formData.orgInn.length !== 12){
+      errors.orgInn = "ИНН - 12 символов"
+    }
+    if(formData.orgOgrn.length !== 15){
+      errors.orgOgrn = "ОГРН - 15 символов"
+    }
+    if(formData.orgKpp.length !== 9){
+      errors.orgKpp = "КПП - 9 символов"
+    }
+    if(formData.contactPhone.length !== 10){
+      errors.contactPhone = "Проверьте номер"
+    }
+    setInputErrors(errors)
+    if (Object.keys(errors).length > 0) {
+      return
+    }
+
+
     let access_token
     access_token = localStorage.getItem("pioneer_token")
     setIsLoading(true)
+    console.log(formData.orgInn.length)
     const response = await fetch('http://localhost:8000/api/organizations/', {
         method: 'POST',
         headers: {
@@ -192,7 +219,7 @@ export default function OrgConnectPage() {
     <>
       <div className="page-enter" style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', background: '#fff' }}>
         {createOrg ? <TopBar onClick={()=>{setCreateOrg(false)}} title="ОРГАНИЗАЦИЯМ-ПАРТНЁРАМ" /> : 
-          <TopBar backHref="/select-role" title="ОРГАНИЗАЦИЯМ-ПАРТНЁРАМ" />
+          <TopBar backHref="/" title="ОРГАНИЗАЦИЯМ-ПАРТНЁРАМ" />
           }
         {statusAuth || createOrg ?
           <div className="fade-in" style={{ padding: '20px 24px', textAlign: 'center', color: 'var(--text-muted)' }}>
@@ -257,35 +284,41 @@ export default function OrgConnectPage() {
                   </SelectContent>
                 </Select>
               </Label>
-              <Label className='flex mb-2'>
+              <Label className={`flex mb-2 relative ${inputErrors.orgInn ? 'mb-6' : null}`}>
                 <span className={'text-left mr-2 w-[88px] after:ml-0.5 after:text-red-500 after:content-["*"]'}>ИНН</span>
                 <Input type="number"
                   id="orgInn"
                   name="orgInn"
                   value={formData.orgInn}
                   onChange={handleChange}
+                  className={inputErrors.orgInn ? 'border-red-500 focus:ring-red-500' : ''}
                   required
                   />
+                  {inputErrors.orgInn && <span className="text-red-500 text-[11px] absolute bottom-[-1rem] left-[5rem]">{inputErrors.orgInn}</span>}
               </Label>
-              <Label className='flex mb-2'>
+              <Label className={`flex mb-2 relative ${inputErrors.orgKpp ? 'mb-6' : null}`}>
                 <span className={'text-left mr-2 w-[88px] after:ml-0.5 after:text-red-500 after:content-["*"]'}>КПП</span>
                 <Input type="number"
                   id="orgKpp"
                   name="orgKpp"
                   value={formData.orgKpp}
                   onChange={handleChange}
+                  className={inputErrors.orgKpp ? 'border-red-500 focus:ring-red-500' : ''}
                   required
                   />
+                  {inputErrors.orgKpp && <span className="text-red-500 text-[11px] absolute bottom-[-1rem] left-[5rem]">{inputErrors.orgKpp}</span>}
               </Label>
-              <Label className='flex mb-2'>
-                <span className={'text-left mr-2 w-[88px] after:ml-0.5 after:text-red-500 after:content-["*"]'}>ОГРН</span>
+              <Label className={`flex mb-2 relative ${inputErrors.orgOgrn ? 'mb-6' : null}`}>
+                <span className={`text-left mr-2 w-[88px] after:ml-0.5 after:text-red-500 after:content-["*"]`}>ОГРН</span>
                 <Input type="number"
                   id="orgOgrn"
                   name="orgOgrn"
                   value={formData.orgOgrn}
+                  className={inputErrors.orgOgrn ? 'border-red-500 focus:ring-red-500' : ''}
                   onChange={handleChange}
                   required
                   />
+                  {inputErrors.orgOgrn && <span className="text-red-500 text-[11px] absolute bottom-[-1rem] left-[5rem]">{inputErrors.orgOgrn}</span>}
               </Label>
               <h2 className='text-left my-2 font-bold text-gray-800'>Контактное лицо</h2>
               <Label className='flex mb-2'>
@@ -310,13 +343,18 @@ export default function OrgConnectPage() {
               </Label>
               <Label className='flex mb-2'>
                 <span className={'text-left mr-2 w-[88px] after:ml-0.5 after:text-red-500 after:content-["*"]'}>Телефон</span>
-                <Input type="number"
+                <div className='relative'>
+                  <Input type="number"
                   id="contactPhone"
                   name="contactPhone"
                   value={formData.contactPhone}
                   onChange={handleChange}
                   required
+                  className={`pl-7 ${inputErrors.orgOgrn ? 'border-red-500 focus:ring-red-500' : ''}`}
                   />
+                  <span className='absolute font-bold text-base left-1 top-[50%] translate-y-[-50%]'>+7</span>
+                  {inputErrors.contactPhone && <span className="text-red-500 text-[11px] absolute bottom-[-1rem] left-0">{inputErrors.contactPhone}</span>}
+                </div>
               </Label>
               <Label className='flex my-4'>
                 <Input type="checkbox"

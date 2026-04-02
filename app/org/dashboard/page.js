@@ -1,21 +1,53 @@
 'use client'
 import Button from "@/components/ui/Button";
 import TopBar from "@/components/ui/TopBar";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTrigger } from "@/componentsShadCN/ui/alert-dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/componentsShadCN/ui/alert-dialog";
 import { useEffect, useState } from "react";
 import ServicesBlock from "./components/servicesBlock";
 import CalendarBlock from "./components/calendarBlock";
 import { useAuth } from "@/hooks/useAuth";
 import { useSearchParams } from "next/navigation";
+import Shedule from "./components/shedule";
+import { toast } from "sonner";
+import { authFetch } from "@/lib/authFetch";
 
 export default function controlPanelPage(){
     const searchParams = useSearchParams()
     const pageId = searchParams.get('') 
     const [pageOpened, setPageOpened] = useState('services')
-    const [open, setOpen] = useState(false)
     const { userData } = useAuth()
     const [organizationData, setOrganizationData] = useState([])
+    const [alertSheduleStatus, setAlertSheduleStatus] = useState(false)
 
+    async function getShedule() {
+        let access_token
+        access_token = localStorage.getItem("pioneer_token")
+        try {
+            const response = await authFetch(
+            `http://localhost:8000/api/organizations/schedules/`,
+                {
+                    method: 'GET',
+                    headers: { 
+                        "Content-Type": "application/json",
+                        "Authorization": `Bearer ${access_token}`
+                    }
+                }
+            )
+
+            let data = await response.json()
+            const filteredData = data.results.filter(item => item.organization === Number(pageId))
+            if(filteredData.length != 0){
+                localStorage.setItem('pioneer_shedule_status', true)
+                setAlertSheduleStatus(false)
+            }else{
+                localStorage.setItem('pioneer_shedule_status', false)
+                setAlertSheduleStatus(true)
+            }
+        } catch (err) {
+            console.error(err)
+            toast("Ошибка загрузки страницы")
+        }
+    }
     const getOrganizationData = async () => {
         let access_token
         access_token = localStorage.getItem("pioneer_token")
@@ -28,10 +60,9 @@ export default function controlPanelPage(){
             }
         })
         if(response.ok){
-        console.log("OK",response)
-        const data = await response.json()
-        console.log("DATA ORG", data)
-        setOrganizationData(data)
+            const data = await response.json()
+            setOrganizationData(data)
+            getShedule()
         }else if(!response.ok){
             console.error("NOT OK",response)
         }
@@ -39,47 +70,15 @@ export default function controlPanelPage(){
 
     useEffect(() => {
         getOrganizationData()
-    }, [userData, pageId])
+    }, [])
 
-
-    
-    /* const organizationData2 = {
-        organizationId: 1337,
-        userOrganization: true,
-        userOrganizationStatus: 'approved',
-        organizationFullName: "OOO IDINAHUI",
-        organizationShortName: "OBNAL",
-        organizationDateRegistration: '10/10/2026',
-        organizationDateApproved: '13/10/2026',
-        orgOgrn: 12345435212,
-        orgInn: 12312312353466765,
-        orgKpp: 7777436213476127,
-        countServices: 12,
-        summaryPrice: 12000,
-        organizationServiceWash: true,
-        organizationServiceTyre: false,
-        services: [
-            {
-                id: 0,
-                title: "Экспресс",
-                description: "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.",
-                duration: 30,
-                createdAt: '10/01/2026',
-                price: 400,
-                status: 'active'
-            },
-            {
-                id: 1,
-                title: "Комплекс",
-                description: 'Lorem ipnsum3232312312412',
-                duration: 60,
-                createdAt: '10/01/2026',
-                price: 600,
-                status: 'ghost'
-            }
-        ]
-    }
-    const [organizationData, setOrganizationData] = useState(organizationData2) */
+    useEffect(() => {
+        let sheduleStatus = localStorage.getItem("pioneer_shedule_status");
+        
+        if ((pageOpened !== 'shedule' && pageOpened !== 'control') && sheduleStatus === 'false') {
+            setPageOpened('control');
+        }
+    }, [pageOpened]);
 
 
     const renderContent = () => {
@@ -101,20 +100,7 @@ export default function controlPanelPage(){
                         <p className="rounded border py-2 px-2 w-max">Количество услуг: {organizationData.countServices}</p>
                         <p className="rounded border py-2 px-2 w-max">Общая стоимость услуг: {organizationData.summaryPrice}₽</p>
                     </div>
-                    <Button variant="red" onClick={()=>{setOpen(true)}}>Скрыть организацию</Button>
-                    <AlertDialog open={open} onOpenChange={setOpen}>
-                        <AlertDialogContent>
-                            <AlertDialogHeader>
-                            <AlertDialogDescription>
-                                Организация не будет выводиться в списке пока вы снова не включите видимость
-                            </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                            <AlertDialogAction className={'bg-red-800 text-white'}>Скрыть</AlertDialogAction>
-                            <AlertDialogCancel>Отмена</AlertDialogCancel>
-                            </AlertDialogFooter>
-                        </AlertDialogContent>
-                    </AlertDialog>
+                    <Button onClick={()=>{setPageOpened('shedule')}}>Настроить расписание</Button>
                 </div>
                 )
             
@@ -126,6 +112,11 @@ export default function controlPanelPage(){
             case 'calendar':
                 return (
                     <CalendarBlock/>
+                )
+
+            case 'shedule':
+                return (
+                    <Shedule orgId={pageId}/>
                 )
             
             default:
@@ -139,19 +130,29 @@ export default function controlPanelPage(){
     }
     return (
         <div className="page-enter" style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', background: '#fff' }}>
-        <TopBar backHref="../" title="Моя организация" />
-        
-        {/* Кнопки для переключения режимов */}
-        <div className="flex gap-4 " style={{ padding: '20px', display: 'flex', gap: '10px' }}>
-            <button className={`underline ${pageOpened == 'control' ? 'font-bold' : ''}`} onClick={() => {setPageOpened('control'), getOrganizationData()}}>Управление</button>
-            <button className={`underline ${pageOpened == 'services' ? 'font-bold' : ''}`} onClick={() => {setPageOpened('services')}}>Услуги</button>
-            <button className={`underline ${pageOpened == 'calendar' ? 'font-bold' : ''}`} onClick={() => setPageOpened('calendar')}>Календарь</button>
-        </div>
-        
-        {/* Рендерим контент через switch */}
-        <div className="px-3">
-            {renderContent()}
-        </div>
+            <TopBar backHref="../" title="Моя организация" />
+            
+            {/* Кнопки для переключения режимов */}
+            <div className="flex gap-4 " style={{ padding: '20px', display: 'flex', gap: '10px' }}>
+                <button className={`underline ${pageOpened == 'control' ? 'font-bold' : ''}`} onClick={() => {setPageOpened('control'), getOrganizationData()}}>Управление</button>
+                <button className={`underline ${pageOpened == 'services' ? 'font-bold' : ''}`} onClick={() => {setPageOpened('services')}}>Услуги</button>
+                <button className={`underline ${pageOpened == 'calendar' ? 'font-bold' : ''}`} onClick={() => setPageOpened('calendar')}>Календарь</button>
+            </div>
+            
+            {/* Рендерим контент через switch */}
+            <div className="px-3">
+                {renderContent()}
+            </div>
+            <AlertDialog open={alertSheduleStatus} onOpenChange={setAlertSheduleStatus}>
+                <AlertDialogContent className={'px-2'}>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Заполните график работы</AlertDialogTitle>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel onClick={()=>{setPageOpened('shedule')}}>Старт</AlertDialogCancel>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </div>
     )
 }

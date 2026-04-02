@@ -250,7 +250,7 @@ export default function ServicesBlock({organizationInfo}){
         } finally {
             setIsLoading(false)
         }
-        }
+    }
 
     const [addServiceStatus, setAddServiceStatus] = useState(false)
     const [formData, setFormData] = useState({})
