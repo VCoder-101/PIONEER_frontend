@@ -45,7 +45,7 @@ export default function TopBar({ backHref, title, hideProfile = false }) {
         )}
         <button
           onClick={() => {
-            localStorage.removeItem('pioneer_user')
+            localStorage.removeItem('pioneer_refresh_token')
             localStorage.removeItem('pioneer_token')
             router.push('/login')
           }}

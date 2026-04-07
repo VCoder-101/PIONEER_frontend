@@ -48,6 +48,7 @@ export default function LoginPage() {
   const [shake, setShake]           = useState(false)
   const [authType, setAuthType] = useState('login')
   const [userName, setUserName] = useState('')
+  const [userPhone, setUserPhone] = useState('')
 
   /* useEffect(() => {
     if (!loading && user) router.replace('/services')
@@ -102,6 +103,10 @@ export default function LoginPage() {
       setErrors({ userName: 'Введите имя' })
       return
     }
+    if (authType == 'registration' && userPhone.length != 10){
+      setErrors({ userPhone: 'Проверьте правильность введенного номера' })
+      return
+    }
 
     setSubmitting(true)
     setErrors({})
@@ -118,11 +123,12 @@ export default function LoginPage() {
             'Content-Type': 'application/json',
         },
         body: JSON.stringify({ 
-          "name": "Michael",
+          "name": userName,
           "email": email,
           "code": code,
           "privacy_policy_accepted": true,
-          "device_id": deviceID
+          "device_id": deviceID,
+          "phone": userPhone
         }),
     })
     if(response.ok){
@@ -188,31 +194,65 @@ export default function LoginPage() {
           </div>
 
           {authType == 'registration' ? 
-            <div className="fade-in">
-              <label style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text)', display: 'block', marginBottom: '6px' }}>
-                Ваше Имя
-              </label>
-              <input
-                type="text"
-                value={userName}
-                onChange={e => {setUserName(e.target.value)}}
-                placeholder="Ваше имя"
-                style={{
-                  width: '100%', padding: '12px 14px',
-                  border: `1.5px solid ${errors.userName ? 'var(--danger)' : 'var(--border)'}`,
-                  borderRadius: '10px', fontSize: '22px',
-                  outline: 'none', color: 'var(--text)',
-                  letterSpacing: '0.3em', textAlign: 'center',
-                  fontFamily: 'var(--font-brand)',
-                  transition: 'border-color 0.2s',
-                }}
-              />
-              {errors.userName && (
-                <div className="fade-in" style={{ marginTop: '5px', fontSize: '12px', color: 'var(--danger)' }}>
-                  ⚠ {errors.userName}
+            <>
+              <div className="fade-in">
+                <label style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text)', display: 'block', marginBottom: '6px' }}>
+                  Ваше Имя
+                </label>
+                <input
+                  type="text"
+                  value={userName}
+                  onChange={e => {setUserName(e.target.value)}}
+                  placeholder="Ваше имя"
+                  style={{
+                    width: '100%', padding: '12px 14px',
+                    border: `1.5px solid ${errors.userName ? 'var(--danger)' : 'var(--border)'}`,
+                    borderRadius: '10px', fontSize: '22px',
+                    outline: 'none', color: 'var(--text)',
+                    letterSpacing: '0.3em', textAlign: 'center',
+                    fontFamily: 'var(--font-brand)',
+                    transition: 'border-color 0.2s',
+                  }}
+                />
+                {errors.userName && (
+                  <div className="fade-in" style={{ marginTop: '5px', fontSize: '12px', color: 'var(--danger)' }}>
+                    ⚠ {errors.userName}
+                  </div>
+                )}
+              </div>
+              <div className="fade-in">
+                <label style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text)', display: 'block', marginBottom: '6px' }}>
+                  Телефон
+                </label>
+                <div className='relative'>
+                  <input
+                    type="text"
+                    value={userPhone}
+                    onChange={e => {setUserPhone(e.target.value)}}
+                    placeholder="(999) 999 99 99"
+                    style={{
+                      width: '100%', padding: '6px 14px',
+                      border: `1.5px solid ${errors.userPhone ? 'var(--danger)' : 'var(--border)'}`,
+                      borderRadius: '10px', fontSize: '22px',
+                      outline: 'none', color: 'var(--text)',
+                      letterSpacing: '0.2em', textAlign: 'left',
+                      fontFamily: 'var(--font-brand)',
+                      transition: 'border-color 0.2s',
+                      paddingLeft: '40px',
+                      lineHeight: '1.5',
+                      textBoxTrim: 'trim-both'
+                    }}
+                    className=''
+                  />
+                  <span style={{ fontFamily: 'var(--font-brand)', lineHeight: '1.5'}} className='absolute font-medium text-[22px] left-4 top-[50%] translate-y-[calc(-50%)]'>+7</span>
                 </div>
-              )}
-            </div> : null
+                {errors.userPhone && (
+                  <div className="fade-in" style={{ marginTop: '5px', fontSize: '12px', color: 'var(--danger)' }}>
+                    ⚠ {errors.userPhone}
+                  </div>
+                )}
+              </div>
+            </> : null
           }
 
           {/* Код из письма */}
