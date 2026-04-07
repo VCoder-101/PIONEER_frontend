@@ -7,6 +7,7 @@ import TopBar from '@/components/ui/TopBar'
 import { useAuth } from '@/hooks/useAuth'
 import { authService } from '@/services/authService'
 import Button from '@/components/ui/Button'
+import { Checkbox } from '@/componentsShadCN/ui/checkbox'
 
 export default function LoginPage() {
   const router = useRouter()
@@ -49,10 +50,7 @@ export default function LoginPage() {
   const [authType, setAuthType] = useState('login')
   const [userName, setUserName] = useState('')
   const [userPhone, setUserPhone] = useState('')
-
-  /* useEffect(() => {
-    if (!loading && user) router.replace('/services')
-  }, [user, loading]) */
+  const [policyAccepted, setPolicyAccepted] = useState(false)
 
   const validateEmail = () => {
     if (!email.trim()) return 'Введите email'
@@ -107,6 +105,11 @@ export default function LoginPage() {
       setErrors({ userPhone: 'Проверьте правильность введенного номера' })
       return
     }
+    if (authType == 'registration' && !policyAccepted){
+      setErrors({ policyAccepted: 'Без вашего согласия мы не сможем с вами работать 🥺' })
+      return
+    }
+
 
     setSubmitting(true)
     setErrors({})
@@ -126,7 +129,7 @@ export default function LoginPage() {
           "name": userName,
           "email": email,
           "code": code,
-          "privacy_policy_accepted": true,
+          "privacy_policy_accepted": policyAccepted,
           "device_id": deviceID,
           "phone": userPhone
         }),
@@ -282,7 +285,7 @@ export default function LoginPage() {
               />
               {errors.code && (
                 <div className="fade-in" style={{ marginTop: '5px', fontSize: '12px', color: 'var(--danger)' }}>
-                  ⚠ {errors.code}
+                  {errors.code}
                 </div>
               )}
               <button
@@ -297,6 +300,22 @@ export default function LoginPage() {
               </button>
             </div>
           )}
+
+          {authType == 'registration' ? 
+            <>
+              <div className="fade-in">
+                <label style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text)'}}>
+                  <Checkbox aria-invalid checked={policyAccepted} onCheckedChange={setPolicyAccepted} className={'mr-2 inline-block translate-y-[3px] shadow-red-50 '}/>
+                  <span>Я согласен с <Link className='text-blue-600' target="_blank" href={'./privacy'}>политикой Конфиденциальности</Link> и политикой о использовании <Link className='text-blue-600' target="_blank" href={'./privacy'}>Cookie файлов</Link> </span>
+                </label>
+                {errors.policyAccepted && (
+                  <div className="fade-in" style={{ marginTop: '5px', fontSize: '12px', color: 'var(--danger)' }}>
+                    {errors.policyAccepted}
+                  </div>
+                )}
+              </div>
+            </> : null
+          }
 
           {/* Ошибка сервера */}
           {errors.server && (
