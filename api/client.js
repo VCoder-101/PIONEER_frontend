@@ -5,11 +5,13 @@ async function refreshAccessToken() {
   const refresh = localStorage.getItem('pioneer_refresh_token')
   if (!refresh) return null
 
+  const deviceId = localStorage.getItem('device_id')
+
   try {
     const response = await fetch(`${BASE_URL}/token/refresh/`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ refresh }),
+      body: JSON.stringify({ refresh, ...(deviceId ? { device_id: deviceId } : {}) }),
     })
     if (response.ok) {
       const data = await response.json()

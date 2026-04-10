@@ -56,7 +56,7 @@ function BookingTimeContent() {
         <div className="text-[13px] text-muted mt-0.5">{orgAddress}</div>
       </div>
       <div className="px-[14px] py-3 mb-4 bg-gray-50 rounded-[10px] border border-border">
-        <div className="text-[12px] text-muted font-semibold uppercase tracking-widest mb-2">Услуги:</div>
+        <div className="text-[12px] text-muted font-semibold mb-2">Услуга:</div>
         {works.map((w, i) => (
           <div key={i} className="flex justify-between text-[13px] text-txt mb-1">
             <span>{w.title || w.name}</span>

@@ -117,7 +117,7 @@ function BookingConfirmContent() {
       </p>
 
       <div className="w-full px-4 py-4 bg-gray-50 rounded-2xl border border-border mb-6">
-        <div className="text-[12px] text-muted font-semibold uppercase tracking-widest mb-2.5">Состав записи</div>
+        <div className="text-[12px] text-muted font-semibold">Состав записи</div>
         {works.map((w, i) => (
           <div key={i} className="flex justify-between text-[13px] mb-1.5">
             <span className="text-txt">{w.title || w.name}</span>
