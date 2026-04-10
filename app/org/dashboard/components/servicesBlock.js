@@ -50,7 +50,8 @@ export default function ServicesBlock({organizationInfo}){
             )
 
             if (!response.ok) {
-                console.error("NOT OK", response)
+                //console.error("NOT OK", response)
+                toast("Ошибка сервера")
                 return
             }
 

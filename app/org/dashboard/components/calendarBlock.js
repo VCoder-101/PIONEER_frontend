@@ -9,8 +9,11 @@ import { MoreHorizontalIcon } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { authFetch } from '@/lib/authFetch'
+import { useSearchParams } from 'next/navigation';
 
 export default function CalendarBlock(){
+    const searchParams = useSearchParams()
+    const pageId = searchParams.get('') 
     const [open, setOpen] = useState(false)
     const [openConfirm, setOpenConfirm] = useState(false)
     const [currentInvoice, setCurrentInvoice] = useState(null)
@@ -36,20 +39,22 @@ export default function CalendarBlock(){
     async function getServices() {
         try {
             const response = await authFetch(
-            `http://localhost:8000/api/bookings/calendar/`
+            `http://localhost:8000/api/bookings/calendar/${pageId}`
             )
 
             if (!response.ok) {
-            console.error("NOT OK", response)
-            return
+                //console.error("NOT OK", response)
+                toast("Ошибка сервера")
+                return
             }
 
             const data = await response.json()
             setInvoices(data.results)
-            console.log('data', data)
+            //console.log('data', data)
 
         } catch (err) {
-            console.error("ERROR", err)
+            //console.error("ERROR", err)
+            toast("Ошибка сервера")
         }
     }
     useEffect(()=>{
@@ -103,7 +108,7 @@ export default function CalendarBlock(){
 
         } catch (err) {
             console.error(err)
-            toast.error("Ошибка")
+            toast.error("Ошибка сервера")
         }
     }
 

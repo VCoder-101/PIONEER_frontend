@@ -43,9 +43,9 @@ export default function Shedule({orgId}){
             setIsLoading(false)
         }
     }
-    useEffect(()=>{
+    /* useEffect(()=>{
         console.log(sheduleData)
-    }, [sheduleData])
+    }, [sheduleData]) */
     useEffect(()=>{
         getShedule()
     },[])

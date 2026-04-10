@@ -31,20 +31,21 @@ export default function OrgConnectPage() {
     let access_token
     access_token = localStorage.getItem("pioneer_token")
 
-    const response = await fetch('http://localhost:8000/api/organizations/', {
+    const response = await fetch('http://localhost:8000/api/organizations/me', {
         method: 'GET',
         headers: {
           "Authorization": `Bearer ${access_token}`,
         }
     })
     if(response.ok){
-      console.log("OK",response)
+      //console.log("OK",response)
       setStatusAuth(true)
       const data = await response.json()
       setOrganizationData(data.results)
-      console.log("dataOrg", data.results)
+      //console.log("dataOrg", data.results)
     }else if(!response.ok){
-      console.log("NOT OK",response)
+      toast("Ошибка сервера")
+      //console.log("NOT OK",response)
     }
   }
   useEffect(() => {
@@ -127,12 +128,7 @@ export default function OrgConnectPage() {
     }
   }
 
-  const [open, setOpen] = useState(false)
-  const [cancelOrgId, setCancelOrgId] = useState(null)
   const [createOrg, setCreateOrg] = useState(false)
-  useEffect(()=>{
-    console.log("cancelOrgId", organizationData)
-  }, [cancelOrgId])
 
 
   if(organizationData.length !== 0 && !createOrg /* && userData.userOrganizationStatus == 'approved' */){
@@ -367,7 +363,7 @@ export default function OrgConnectPage() {
               </Label>
               <Button type="submit" fullWidth className={'w-[100%]'}>Отправить</Button>
             </form>
-          </div> : <div className='text-xl text-center flex column flex-col items-center mt-6'>Для продолжения, вам необходимо авторизоваться <Button onClick={()=>{router.push('/login')}} className='mt-4'>Авторизация</Button></div>
+          </div> : <div className='text-xl text-center flex column flex-col items-center mt-6'>Ошибка сервера</div>
         }
         {isLoading ? 
           <div className='w-full h-full fixed top-0 left-0 bg-black/50'>
