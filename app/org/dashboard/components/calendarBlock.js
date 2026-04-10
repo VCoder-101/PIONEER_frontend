@@ -9,8 +9,11 @@ import { MoreHorizontalIcon } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { authFetch } from '@/lib/authFetch'
+import { useSearchParams } from 'next/navigation';
 
 export default function CalendarBlock(){
+    const searchParams = useSearchParams()
+    const pageId = searchParams.get('') 
     const [open, setOpen] = useState(false)
     const [openConfirm, setOpenConfirm] = useState(false)
     const [currentInvoice, setCurrentInvoice] = useState(null)
@@ -36,7 +39,7 @@ export default function CalendarBlock(){
     async function getServices() {
         try {
             const response = await authFetch(
-            `http://localhost:8000/api/bookings/calendar/`
+            `http://localhost:8000/api/bookings/calendar/${pageId}`
             )
 
             if (!response.ok) {

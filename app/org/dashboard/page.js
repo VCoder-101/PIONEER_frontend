@@ -18,35 +18,68 @@ export default function controlPanelPage(){
     const { userData } = useAuth()
     const [organizationData, setOrganizationData] = useState([])
     const [alertSheduleStatus, setAlertSheduleStatus] = useState(false)
+    const [alertServicesStatus, setAlertServicesStatus] = useState(false)
 
-    async function getShedule() {
+    async function getAlertSendConfig() {
         let access_token
         access_token = localStorage.getItem("pioneer_token")
-        try {
-            const response = await authFetch(
-            `http://localhost:8000/api/organizations/schedules/`,
-                {
-                    method: 'GET',
-                    headers: { 
-                        "Content-Type": "application/json",
-                        "Authorization": `Bearer ${access_token}`
+        let scheduleStatus = await localStorage.getItem("pioneer_shedule_status")
+        let servicesStatus = localStorage.getItem("pioneer_services_status")
+        if(scheduleStatus != true){
+            try {
+                const response = await authFetch(
+                `http://localhost:8000/api/organizations/schedules/`,
+                    {
+                        method: 'GET',
+                        headers: { 
+                            "Content-Type": "application/json",
+                            "Authorization": `Bearer ${access_token}`
+                        }
                     }
-                }
-            )
+                )
 
-            let data = await response.json()
-            const filteredData = data.results.filter(item => item.organization === Number(pageId))
-            if(filteredData.length != 0){
-                localStorage.setItem('pioneer_shedule_status', true)
-                setAlertSheduleStatus(false)
-            }else{
-                localStorage.setItem('pioneer_shedule_status', false)
-                setAlertSheduleStatus(true)
+                let data = await response.json()
+                const filteredData = data.results.filter(item => item.organization === Number(pageId))
+                if(filteredData.length != 0){
+                    localStorage.setItem('pioneer_shedule_status', 'true')
+                    setAlertSheduleStatus(false)
+                }else{
+                    localStorage.setItem('pioneer_shedule_status', 'false')
+                    setAlertSheduleStatus(true)
+                }
+            } catch (err) {
+                console.error(err)
+                toast("Ошибка загрузки страницы")
             }
-        } catch (err) {
-            console.error(err)
-            toast("Ошибка загрузки страницы")
         }
+        if(servicesStatus !== true && scheduleStatus === "true"){
+            try {
+                const response = await authFetch(
+                `http://localhost:8000/api/services/?organization=${pageId}`,
+                    {
+                        method: 'GET',
+                        headers: { 
+                            "Content-Type": "application/json",
+                            "Authorization": `Bearer ${access_token}`
+                        }
+                    }
+                )
+
+                let data = await response.json()
+                //console.log("DATA", data)
+                if(data.count != 0){
+                    localStorage.setItem('pioneer_services_status', 'true')
+                    setAlertServicesStatus(false)
+                }else{
+                    localStorage.setItem('pioneer_services_status', 'false')
+                    setAlertServicesStatus(true)
+                }
+            } catch (err) {
+                console.error(err)
+                toast("Ошибка загрузки страницы")
+            }
+        }
+        
     }
     const getOrganizationData = async () => {
         let access_token
@@ -62,7 +95,7 @@ export default function controlPanelPage(){
         if(response.ok){
             const data = await response.json()
             setOrganizationData(data)
-            getShedule()
+            getAlertSendConfig()
         }else if(!response.ok){
             //console.error("NOT OK",response)
             toast("Ошибка сервера")
@@ -164,6 +197,16 @@ export default function controlPanelPage(){
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                         <AlertDialogCancel onClick={()=>{setPageOpened('shedule')}}>Старт</AlertDialogCancel>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
+            <AlertDialog open={alertServicesStatus} onOpenChange={setAlertServicesStatus}>
+                <AlertDialogContent className={'px-2'}>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Добавьте новые услуги</AlertDialogTitle>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel onClick={()=>{setPageOpened('services')}}>Старт</AlertDialogCancel>
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>
