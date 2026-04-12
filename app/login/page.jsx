@@ -1,5 +1,7 @@
 'use client'
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api'
+
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
@@ -120,7 +122,7 @@ export default function LoginPage() {
   
     const deviceID = `${userAgent}-${platform}-${randomString}`;
 
-    const response = await fetch('http://localhost:8000/api/users/auth/verify-code/', {
+    const response = await fetch(`${API_URL}/users/auth/verify-code/`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',

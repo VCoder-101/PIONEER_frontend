@@ -1,4 +1,7 @@
 'use client'
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api'
+
 import Button from "@/components/ui/Button";
 import { Drawer, DrawerClose, DrawerContent, DrawerDescription, DrawerFooter, DrawerHeader, DrawerTitle, DrawerTrigger } from "@/componentsShadCN/ui/drawer";
 import { Field, FieldLabel } from "@/componentsShadCN/ui/field";
@@ -18,7 +21,7 @@ export default function Shedule({orgId}){
             setIsLoading(true)
 
             const response = await authFetch(
-            `http://localhost:8000/api/organizations/schedules/`,
+            `${API_URL}/organizations/schedules/`,
             {
                 method: 'GET',
                 headers: { 
@@ -100,7 +103,7 @@ export default function Shedule({orgId}){
             setIsLoading(true)
 
             const response = await authFetch(
-            `http://localhost:8000/api/organizations/schedules/`,
+            `${API_URL}/organizations/schedules/`,
             {
                 method: 'POST',
                 headers: { 
@@ -139,7 +142,7 @@ export default function Shedule({orgId}){
             setIsLoading(true)
 
             const response = await authFetch(
-            `http://localhost:8000/api/organizations/schedules/${id}/`,
+            `${API_URL}/organizations/schedules/${id}/`,
             {
                 method: 'PATCH',
                 headers: { 

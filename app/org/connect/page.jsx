@@ -1,5 +1,7 @@
 'use client'
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api'
+
 import Button from '@/components/ui/Button'
 import TopBar from '@/components/ui/TopBar'
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/componentsShadCN/ui/accordion'
@@ -31,7 +33,7 @@ export default function OrgConnectPage() {
     let access_token
     access_token = localStorage.getItem("pioneer_token")
 
-    const response = await fetch('http://localhost:8000/api/organizations/me', {
+    const response = await fetch(`${API_URL}/organizations/me`, {
         method: 'GET',
         headers: {
           "Authorization": `Bearer ${access_token}`,
@@ -95,7 +97,7 @@ export default function OrgConnectPage() {
     access_token = localStorage.getItem("pioneer_token")
     setIsLoading(true)
     console.log(formData.orgInn.length)
-    const response = await fetch('http://localhost:8000/api/organizations/', {
+    const response = await fetch(`${API_URL}/organizations/`, {
         method: 'POST',
         headers: {
           "Content-Type": "application/json",

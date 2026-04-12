@@ -1,4 +1,7 @@
 'use client'
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api'
+
 import Button from "@/components/ui/Button";
 import TopBar from "@/components/ui/TopBar";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTrigger } from "@/componentsShadCN/ui/alert-dialog";
@@ -25,7 +28,7 @@ export default function ServicesBlock({organizationInfo}){
     /* async function getServices(){
         let access_token
         access_token = localStorage.getItem("pioneer_token")
-        const response = await fetch(`http://localhost:8000/api/services/?organization=${pageId}`, {
+        const response = await fetch(`${API_URL}/services/?organization=${pageId}`, {
             method: 'GET',
             headers: {
                 "Authorization": `Bearer ${access_token}`,
@@ -46,7 +49,7 @@ export default function ServicesBlock({organizationInfo}){
     async function getServices() {
         try {
             const response = await authFetch(
-            `http://localhost:8000/api/services/?organization=${pageId}`
+            `${API_URL}/services/?organization=${pageId}`
             )
 
             if (!response.ok) {
@@ -110,7 +113,7 @@ export default function ServicesBlock({organizationInfo}){
             setIsLoading(true)
             const access_token = localStorage.getItem("pioneer_token")
             
-            const response = await fetch(`http://localhost:8000/api/services/${serviceId}/`, {
+            const response = await fetch(`${API_URL}/services/${serviceId}/`, {
                 method: 'PATCH',
                 headers: {
                     "Authorization": `Bearer ${access_token}`,
@@ -146,7 +149,7 @@ export default function ServicesBlock({organizationInfo}){
             setIsLoading(true)
 
             const response = await authFetch(
-            `http://localhost:8000/api/services/${serviceId}/`,
+            `${API_URL}/services/${serviceId}/`,
             {
                 method: 'PATCH',
                 headers: { "Content-Type": "application/json" },
@@ -189,7 +192,7 @@ export default function ServicesBlock({organizationInfo}){
         let access_token
         access_token = localStorage.getItem("pioneer_token")
         console.log("editFormData", editFormData)
-        const response = await fetch(`http://localhost:8000/api/services/${id}/`, {
+        const response = await fetch(`${API_URL}/services/${id}/`, {
             method: 'PATCH',
             headers: {
                 "Authorization": `Bearer ${access_token}`,
@@ -220,7 +223,7 @@ export default function ServicesBlock({organizationInfo}){
             setIsLoading(true)
 
             const response = await authFetch(
-            `http://localhost:8000/api/services/${id}/`,
+            `${API_URL}/services/${id}/`,
             {
                 method: 'PATCH',
                 headers: { "Content-Type": "application/json" },
@@ -270,7 +273,7 @@ export default function ServicesBlock({organizationInfo}){
         let access_token
         access_token = localStorage.getItem("pioneer_token")
         setIsLoading(true)
-        const response = await fetch('http://localhost:8000/api/services/', {
+        const response = await fetch(`${API_URL}/services/`, {
             method: 'POST',
             headers: {
                 "Content-Type": "application/json",
@@ -305,7 +308,7 @@ export default function ServicesBlock({organizationInfo}){
             setIsLoading(true)
 
             const response = await authFetch(
-            'http://localhost:8000/api/services/',
+            `${API_URL}/services/`,
             {
                 method: 'POST',
                 headers: { "Content-Type": "application/json" },
@@ -344,7 +347,7 @@ export default function ServicesBlock({organizationInfo}){
         let access_token
         access_token = localStorage.getItem("pioneer_token")
         console.log("editFormData", editFormData)
-        const response = await fetch(`http://localhost:8000/api/services/${id}/`, {
+        const response = await fetch(`${API_URL}/services/${id}/`, {
             method: 'DELETE',
             headers: {
                 "Authorization": `Bearer ${access_token}`,
@@ -366,7 +369,7 @@ export default function ServicesBlock({organizationInfo}){
             setIsLoading(true)
 
             const response = await authFetch(
-            `http://localhost:8000/api/services/${id}/`,
+            `${API_URL}/services/${id}/`,
             {
                 method: 'DELETE'
             }

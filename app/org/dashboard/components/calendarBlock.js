@@ -1,4 +1,7 @@
 'use client'
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api'
+
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/componentsShadCN/ui/accordion";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/componentsShadCN/ui/alert-dialog";
 import { Button } from "@/componentsShadCN/ui/button";
@@ -22,7 +25,7 @@ export default function CalendarBlock(){
     /* async function getServices(){
         let access_token
         access_token = localStorage.getItem("pioneer_token")
-        const response = await fetch(`http://localhost:8000/api/bookings/calendar/`, {
+        const response = await fetch(`${API_URL}/bookings/calendar/`, {
             method: 'GET',
             headers: {
                 "Authorization": `Bearer ${access_token}`,
@@ -39,7 +42,7 @@ export default function CalendarBlock(){
     async function getServices() {
         try {
             const response = await authFetch(
-            `http://localhost:8000/api/bookings/calendar/${pageId}`
+            `${API_URL}/bookings/calendar/${pageId}`
             )
 
             if (!response.ok) {
@@ -73,7 +76,7 @@ export default function CalendarBlock(){
     /* async function bookingCancel(invoiceId){
         let access_token
         access_token = localStorage.getItem("pioneer_token")
-        const response = await fetch(`http://localhost:8000/api/bookings/${invoiceId}/cancel/`, {
+        const response = await fetch(`${API_URL}/bookings/${invoiceId}/cancel/`, {
             method: 'POST',
             headers: {
                 "Authorization": `Bearer ${access_token}`,
@@ -91,7 +94,7 @@ export default function CalendarBlock(){
     async function bookingCancel(invoiceId) {
         try {
             const response = await authFetch(
-            `http://localhost:8000/api/bookings/${invoiceId}/cancel/`,
+            `${API_URL}/bookings/${invoiceId}/cancel/`,
             {
                 method: 'POST'
             }
@@ -115,7 +118,7 @@ export default function CalendarBlock(){
     /* async function bookingAccept(invoiceId, status){
         let access_token
         access_token = localStorage.getItem("pioneer_token")
-        const response = await fetch(`http://localhost:8000/api/bookings/${invoiceId}/`, {
+        const response = await fetch(`${API_URL}/bookings/${invoiceId}/`, {
             method: 'PATCH',
             headers: {
                 "Authorization": `Bearer ${access_token}`,
@@ -137,7 +140,7 @@ export default function CalendarBlock(){
     async function bookingAccept(invoiceId, status) {
         try {
             const response = await authFetch(
-            `http://localhost:8000/api/bookings/${invoiceId}/`,
+            `${API_URL}/bookings/${invoiceId}/`,
             {
                 method: 'PATCH',
                 headers: {
