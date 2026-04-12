@@ -71,7 +71,7 @@ export default function LoginPage() {
 
     setSubmitting(true)
 
-    const response = await fetch('http://127.0.0.1:8000/api/users/auth/send-code/', {
+    const response = await fetch(`${API_URL}/users/auth/send-code/`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
