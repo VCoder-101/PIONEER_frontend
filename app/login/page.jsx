@@ -5,7 +5,6 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api'
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import TopBar from '@/components/ui/TopBar'
 import { useAuth } from '@/hooks/useAuth'
 import { authService } from '@/services/authService'
 import Button from '@/components/ui/Button'
@@ -157,8 +156,6 @@ export default function LoginPage() {
 
   return (
     <div className="page-enter" style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', background: '#fff' }}>
-      <TopBar backHref="/" />
-
       <div style={{ padding: '32px 24px', flex: 1 }}>
         <h1 className="fade-in" style={{
           fontFamily: 'var(--font-brand)', fontSize: '26px', fontWeight: 700,
