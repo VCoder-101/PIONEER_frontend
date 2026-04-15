@@ -22,6 +22,18 @@ function BookingTimeContent() {
   const [slots, setSlots]       = useState([])
   const [loading, setLoading]   = useState(false)
   const [error, setError]       = useState(null)
+  const [cars, setCars]         = useState([])
+  const [selectedCar, setSelectedCar] = useState(null)
+
+  useEffect(() => {
+    apiClient.get('/cars/')
+      .then(data => {
+        const list = data.results || data
+        setCars(list)
+        if (list.length === 1) setSelectedCar(list[0].id)
+      })
+      .catch(() => {})
+  }, [])
 
   const getDateStr = (d) => {
     const now = new Date()
@@ -43,11 +55,12 @@ function BookingTimeContent() {
   }, [day, serviceApiId])
 
   const handleSelect = () => {
-    const params = new URLSearchParams({ service: serviceId, orgName, orgAddress, day, time: timeSlot, totalPrice, totalDuration, works: JSON.stringify(works), serviceApiId })
+    const params = new URLSearchParams({ service: serviceId, orgName, orgAddress, day, time: timeSlot, totalPrice, totalDuration, works: JSON.stringify(works), serviceApiId, carId: selectedCar || '' })
     router.push(`/booking-confirm?${params.toString()}`)
   }
 
   const availableSlots = slots.filter(s => s.available)
+  const canProceed = timeSlot && (cars.length === 0 || selectedCar)
 
   return (
     <div className="px-5 py-4 flex-1 flex flex-col">
@@ -68,6 +81,36 @@ function BookingTimeContent() {
           <span className="text-[13px] font-bold text-primary">{totalPrice} RUB {totalDuration} мин</span>
         </div>
       </div>
+
+      {/* Выбор автомобиля */}
+      {cars.length > 1 && (
+        <div className="border border-border rounded-xl mb-4 overflow-hidden">
+          <div className="px-4 pt-3 pb-2 text-[12px] text-muted font-semibold">Автомобиль:</div>
+          {cars.map((car, idx) => (
+            <label key={car.id}
+              className={`flex items-center gap-3 px-4 py-[12px] cursor-pointer transition-colors
+                ${idx < cars.length - 1 ? 'border-b border-border' : ''}
+                ${selectedCar === car.id ? 'bg-primary-l' : 'bg-white'}`}>
+              <input
+                type="radio"
+                name="car"
+                value={car.id}
+                checked={selectedCar === car.id}
+                onChange={() => setSelectedCar(car.id)}
+                className="w-[18px] h-[18px] shrink-0"
+                style={{ accentColor: '#1a56db' }}
+              />
+              <div className="flex-1 min-w-0">
+                <div className={`text-[14px] font-semibold ${selectedCar === car.id ? 'text-primary' : 'text-txt'}`}>
+                  {car.brand}
+                </div>
+                <div className="text-[12px] text-muted mt-0.5">{car.license_plate} · R{car.wheel_diameter}</div>
+              </div>
+            </label>
+          ))}
+        </div>
+      )}
+
       <div className="flex gap-2 mb-4">
         {[{ id: 'today', label: 'Сегодня' }, { id: 'tomorrow', label: 'Завтра' }].map(d => (
           <button key={d.id} onClick={() => { setDay(d.id); setTimeSlot(null) }}
@@ -97,10 +140,15 @@ function BookingTimeContent() {
         </div>
       )}
 
-      <button onClick={handleSelect} disabled={!timeSlot}
-        className={`w-full py-4 rounded-xl font-brand text-[17px] font-bold tracking-widest border-none transition-all ${timeSlot ? 'bg-primary text-white cursor-pointer' : 'bg-border text-muted cursor-not-allowed'}`}>
+      <button onClick={handleSelect} disabled={!canProceed}
+        className={`w-full py-4 rounded-xl font-brand text-[17px] font-bold tracking-widest border-none transition-all ${canProceed ? 'bg-primary text-white cursor-pointer' : 'bg-border text-muted cursor-not-allowed'}`}>
         ВЫБРАТЬ
       </button>
+      {!canProceed && !loading && (
+        <p className="text-center text-[12px] text-muted mt-2">
+          {!timeSlot && cars.length > 1 && !selectedCar ? 'Выберите автомобиль и время' : !timeSlot ? 'Выберите время' : 'Выберите автомобиль'}
+        </p>
+      )}
     </div>
   )
 }

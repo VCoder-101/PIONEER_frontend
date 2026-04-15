@@ -22,6 +22,7 @@ function BookingConfirmContent() {
   const totalPrice    = searchParams.get('totalPrice')    || '0'
   const totalDuration = searchParams.get('totalDuration') || '0'
   const serviceApiId  = searchParams.get('serviceApiId')  || null
+  const carId         = searchParams.get('carId')         || null
   let works = []; try { works = JSON.parse(searchParams.get('works') || '[]') } catch {}
 
   const [booked, setBooked]   = useState(false)
@@ -52,8 +53,9 @@ function BookingConfirmContent() {
             setLoading(false)
             return
           }
-          carBrand = cars[0].brand || ''
-          carWheelDiameter = cars[0].wheel_diameter || 16
+          const car = carId ? (cars.find(c => String(c.id) === String(carId)) || cars[0]) : cars[0]
+          carBrand = car.brand || ''
+          carWheelDiameter = car.wheel_diameter || 16
         } catch {}
 
         const now = new Date()
